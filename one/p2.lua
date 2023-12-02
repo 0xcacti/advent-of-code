@@ -71,7 +71,6 @@ for line in io.lines() do
     -- local y = string.sub(string.match(string.reverse(line), "%d+"), 1, 1)
     local x = getFirstDigit(line)
     local y = getLastDigit(line)
-    print(x, y)
     local pair = x .. y
     sum = sum + tonumber(pair)
 end
