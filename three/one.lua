@@ -57,32 +57,6 @@ local function is_number(c)
         c == "9"
 end
 
---
--- local function get_surrounding_number(grid, i, j)
---     -- get start index
---     local start_j = j
---     local end_j = j
---
---
---     while start_j > 1 and is_number(grid[i][start_j]) do
---         start_j = start_j - 1
---     end
---     start_j = start_j + 1
---
---     while end_j <= #grid[i] and is_number(grid[i][end_j]) do
---         end_j = end_j + 1
---     end
---     end_j = end_j - 1
---
---     local number = ""
---     for k = start_j, end_j do
---         number = number .. grid[i][k]
---     end
---     return number, start_j, end_j
---
---     -- get end index
--- end
-
 
 local function get_surrounding_number(grid, i, j)
     local start_j = j
@@ -101,6 +75,7 @@ local function get_surrounding_number(grid, i, j)
     end
     return number, start_j, end_j
 end
+
 local grid = {}
 
 for line in io.lines() do
