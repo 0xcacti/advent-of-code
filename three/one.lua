@@ -92,6 +92,7 @@ local i = 1
 while i <= #grid do
     local j = 1
     while j <= #grid[i] do
+        print("i:", i, "j:", j)
         if is_number(grid[i][j]) and check_is_part(grid, i, j) then
             local num, _, end_j = get_surrounding_number(grid, i, j)
             if num == "" then
