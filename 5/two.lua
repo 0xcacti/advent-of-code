@@ -30,11 +30,12 @@ function split(inputstr, sep)
 end
 
 function map_range(seed_start, seed_end, dest_low, source_low, interval)
-    local seed_start = tonumber(seed_start)
-    local seed_end = tonumber(seed_end)
-    local interval = tonumber(interval)
+    seed_start = tonumber(seed_start)
+    seed_end = tonumber(seed_end)
+    interval = tonumber(interval)
+    print(dest_low)
     local dest_start = tonumber(dest_low)
-    local dest_end = dest_low + interval
+    local dest_end = dest_start + interval
     local source_start = tonumber(source_low)
     local source_end = source_low + interval
 
@@ -74,49 +75,58 @@ function map_range(seed_start, seed_end, dest_low, source_low, interval)
         table.insert(unmapped, upper_interval)
     end
 
-    return true, mapped, unmapped
+    return mapped, unmapped
 end
 
 local line = io.read()
 line = mysplit(line, ":")[2]
 line = string.sub(line, 2)
-local seeds = mysplit(line, " ")
+local seed_ranges = mysplit(line, " ")
 _ = io.read()
 
 file = io.read("*all")
-local parts = mysplit(file, "\n\n")
+local maps = mysplit(file, "\n\n")
 
-local current_lowest = math.huge
+-- if current_seed_value < current_lowest then
+--     current_lowest = current_seed_value
+-- end
+-- print(current_lowest)
 
-for i = 1, #seeds, 2 do
-    print("Calculating for seed range " .. seeds[i] .. " to " .. seeds[i] + seeds[i + 1])
-    local start = seeds[i]
-    local stop = seeds[i] + seeds[i + 1]
-    local total = stop - start + 1
+for i = 2, #maps do
+    local new_seed_ranges = {}
+    local j = 1
 
-    for _, part in ipairs(parts) do
-        local map_entries = split(part, "\n")
-
-        while total > 0 do
-            for i = 2, #map_entries do
-                local entry = map_entries[i]
-                local entry_parts = split(entry, " ")
-                local did_mapping, mapped, unmapped = map_range(start, stop, entry_parts[1], entry_parts[2],
-                    entry_parts[3])
-                if did_mapping then 
-
-
-                --         if in_range then
-                --             -- io.write(current_seed_value .. " -> ")
-                --             current_seed_value = value
-                --             -- io.write(current_seed_value .. "\n")
-                --             break
-                --         end
+    -- loop until all seed ranges are mapped
+    while j <= #seed_ranges do
+        -- loop over each seed range until total is nothing
+        local start = seed_ranges[i]
+        local stop = seed_ranges[i] + seed_ranges[i + 1]
+        local round_unmapped = {}
+        local map_entries = split(maps[i], "\n")
+        for k = 2, #map_entries do
+            if k == #map_entries then
+                for l = 1, #round_unmapped do
+                    table.insert(new_seed_ranges, round_unmapped[l])
+                end
+            end
+            local entry = map_entries[j]
+            print(entry)
+            local entry_parts = split(entry, " ")
+            local mapped, unmapped = map_range(start, stop, entry_parts[1], entry_parts[2],
+                entry_parts[3])
+            if mapped then
+                table.insert(new_seed_ranges, mapped[1])
+                table.insert(new_seed_ranges, mapped[2])
+            end
+            if unmapped then
+                table.insert(round_unmapped, unmapped[1])
+                table.insert(round_unmapped, unmapped[2])
             end
         end
     end
-    -- if current_seed_value < current_lowest then
-    --     current_lowest = current_seed_value
-    -- end
+    seed_ranges = new_seed_ranges
 end
--- print(current_lowest)
+
+for i = 1, #seed_ranges do
+    print(seed_ranges[i])
+end
