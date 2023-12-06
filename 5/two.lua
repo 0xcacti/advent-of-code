@@ -1,5 +1,6 @@
 local M = {}
 
+
 -- Read the first lines
 function mysplit(inputstr, sep)
     if sep == nil then
@@ -37,24 +38,15 @@ M.map_range = function(seed_start, seed_end, dest_low, source_low, interval)
     local source_start = tonumber(source_low)
     local source_end = source_low + interval - 1
 
-    print("seed_start: " .. seed_start)
-    print("seed_end: " .. seed_end)
-    print("source_start: " .. source_start)
-    print("source_end: " .. source_end)
-
     if not (seed_start and seed_end and interval and dest_start and dest_end and source_start and source_end) then
-        print("not all numbers")
         return nil, nil
     end
 
 
     local overlap_start = math.max(seed_start, source_start)
     local overlap_end = math.min(seed_end, source_end)
-    print("overlap_start: " .. overlap_start)
-    print("overlap_end: " .. overlap_end)
 
     if overlap_start > overlap_end then
-        print("overlap_start > overlap_end")
         return nil, nil
     end
 
@@ -108,40 +100,52 @@ M.solve = function()
     -- end
     -- print(current_lowest)
 
+
+    -- for each map
+    local steps = 0
     for i = 2, #maps do
         local new_seed_ranges = {}
         local j = 1
 
-        -- loop until all seed ranges are mapped
+        -- loop over each seed range until nothing remains
         while j <= #seed_ranges do
-            -- loop over each seed range until total is nothing
             local start = seed_ranges[i]
             local stop = seed_ranges[i] + seed_ranges[i + 1]
             local total = stop - start + 1
+
             local round_unmapped = {}
             local map_entries = split(maps[i], "\n")
+            local times_through = 0
             while total > 0 do
                 print("total: " .. total)
-                for k = 2, #map_entries do
-                    if k == #map_entries then
-                        for l = 1, #round_unmapped do
-                            table.insert(new_seed_ranges, round_unmapped[l])
+                if times_through == 2 then
+                    for l = 1, #round_unmapped, 2 do
+                        table.insert(new_seed_ranges, round_unmapped[l])
+                        if i % 2 == 1 then
+                            total = total - 1
                         end
                     end
+                    break
+                end
+                for k = 2, #map_entries do -- go through each map entry
                     local entry = map_entries[k]
                     local entry_parts = split(entry, " ")
-                    local mapped, unmapped = map_range(start, stop, entry_parts[1], entry_parts[2],
+                    local mapped, unmapped = M.map_range(start, stop, entry_parts[1], entry_parts[2],
                         entry_parts[3])
                     if mapped then
                         table.insert(new_seed_ranges, mapped[1])
                         table.insert(new_seed_ranges, mapped[2])
-                        total = total - (mapped[1] + mapped[2] + 1)
+                        total = total - (mapped[2])
                     end
                     if unmapped then
                         table.insert(round_unmapped, unmapped[1])
                         table.insert(round_unmapped, unmapped[2])
                     end
                 end
+                times_through = times_through + 1
+            end
+            if steps == 2 then
+                break
             end
         end
         seed_ranges = new_seed_ranges
@@ -152,7 +156,7 @@ M.solve = function()
     end
 end
 
--- print(solve())
+print(M.solve())
 
 
 return M
