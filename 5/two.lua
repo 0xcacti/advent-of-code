@@ -1,5 +1,3 @@
-local rootPath = "../?.lua" -- Adjust the path as necessary
-package.path = package.path .. ";" .. rootPath
 require "utils"
 
 local maps = {}
@@ -19,7 +17,7 @@ local function getLocation(seed)
 end
 
 local function initMaps()
-    local input = readFile("./five/input.txt")
+    local input = readFile("input.txt")
     local lines = splitString(input, lineDelimiter)
     local lineTable = {}
     local actualMap = ""
@@ -39,6 +37,8 @@ local function initMaps()
         end
     end
 end
+
+initMaps()
 
 local bestLocation = 999999999999 -- el numero mas alto posible?
 local location = 0
@@ -77,5 +77,3 @@ while i < #seeds do
     i = i + 2
 end
 print(bestLocation)
-
-initMaps()
