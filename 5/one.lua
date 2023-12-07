@@ -1,4 +1,10 @@
 io.input("input.txt")
+    it("computes the correct mapping", function() 
+        
+        seeds = { 79, 14, 55, 13}
+        map = "50 98 2" .. "\n" .. "52 50 48"
+
+    })
 -- io.input("test_input.txt")
 
 -- Read the first lines
