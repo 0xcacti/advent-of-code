@@ -64,21 +64,21 @@ M.solve = function()
         maps[i] = fixed_map
     end
 
+
+
     local seeds = {}
     for i = 1, #seed_ranges, 2 do
         table.insert(seeds, seed_ranges[i])
         table.insert(seeds, seed_ranges[i] + seed_ranges[i + 1])
     end
 
-
-
     -- loop over each seed range
     for i = 1, #maps do
-        print("map " .. i)
         local new = {}
         while #seeds > 0 do
-            e = tonumber(table.remove(seeds))
-            s = tonumber(table.remove(seeds))
+            local matched = false
+            local e = tonumber(table.remove(seeds))
+            local s = tonumber(table.remove(seeds))
             current_map = maps[i]
             for k = 1, #current_map do
                 local entry = current_map[k]
@@ -88,8 +88,8 @@ M.solve = function()
                 b = tonumber(b)
                 c = tonumber(c)
 
-                os = tonumber(math.max(s, b))
-                oe = tonumber(math.min(e, b + c))
+                local os = tonumber(math.max(s, b))
+                local oe = tonumber(math.min(e, b + c))
                 if os < oe then
                     table.insert(new, os - b + a)
                     table.insert(new, oe - b + a)
@@ -101,21 +101,28 @@ M.solve = function()
                         table.insert(seeds, oe)
                         table.insert(seeds, e)
                     end
+                    matched = true
                     break
                 else
-                    table.insert(new, s)
-                    table.insert(new, e)
                 end
             end
-            seeds = new
+            if not matched then
+                table.insert(new, s)
+                table.insert(new, e)
+            end
         end
+        seeds = new
     end
 
-    print("final seed ranges")
+    pairs = {}
     for i = 1, #seeds, 2 do
-        print(seeds[i] .. "->" .. seeds[i + 1])
+        table.insert(pairs, { seeds[i], seeds[i + 1] })
     end
+
+    table.sort(pairs, function(a, b)
+        return a[1] < b[1]
+    end)
+    print(pairs[1][1])
 end
 
 print(M.solve())
--- return M
