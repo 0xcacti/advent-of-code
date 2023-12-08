@@ -32,8 +32,8 @@ end
 M.map_range = function(seed_start, seed_end, dest_low, source_low, interval)
     seed_start = tonumber(seed_start)
     seed_end = tonumber(seed_end)
-
     interval = tonumber(interval)
+
     local dest_start = tonumber(dest_low)
     local dest_end = dest_start + interval
     local source_start = tonumber(source_low)
@@ -46,7 +46,6 @@ M.map_range = function(seed_start, seed_end, dest_low, source_low, interval)
     print("seed interval: " .. seed_start .. "->" .. seed_end)
     print("source interval: " .. source_start .. "->" .. source_end)
     if seed_end < source_start or seed_start > source_end then
-        print("no overlap --- this should not be the case")
         return nil, { seed_start, seed_end - seed_start + 1 }
     end
 
@@ -59,6 +58,7 @@ M.map_range = function(seed_start, seed_end, dest_low, source_low, interval)
     local mapped_start = dest_start + (overlap_start - source_start)
     local mapped_end = dest_start + (overlap_end - source_start)
     local mapped_interval = mapped_end - mapped_start + 1
+
     local mapped = { mapped_start, mapped_interval }
     print("mapped: " .. mapped[1] .. " " .. mapped[2])
 
@@ -89,28 +89,61 @@ M.map_range = function(seed_start, seed_end, dest_low, source_low, interval)
     return mapped, unmapped
 end
 
+M.reconstructUnmapped = function(mapped, start, stop)
+    local unmapped = {}
+    start = tonumber(start)
+    stop = tonumber(stop)
+
+    for i = 1, #mapped, 2 do
+        print(mapped[i] .. " " .. mapped[i + 1])
+        local mapped_start = mapped[1]
+        local mapped_stop = mapped[1] + mapped[2] - 1
+
+        if mapped_start > start then
+            local lower_unmapped = start
+            -- 1 2 3 4 5
+            local lower_interval = mapped_start - start
+            table.insert(unmapped, lower_unmapped)
+            table.insert(unmapped, lower_interval)
+        end
+        start = mapped_stop + 1
+    end
+
+
+    local mapped_start = mapped[#mapped] - 1
+    local mapped_stop = mapped_start + mapped[#mapped] - 1
+    if mapped_stop < stop then
+        local upper_unmapped = mapped_stop + 1
+        local upper_interval = stop - upper_unmapped + 1
+        table.insert(unmapped, upper_unmapped)
+        table.insert(unmapped, upper_interval)
+    end
+    return unmapped
+end
+
 M.mapRange = function(current_map, start, stop)
     print("--- mapRange ---")
     local mapped = {}
     local unmapped = {}
-    total = stop - start + 1
+
     for k = 1, #current_map do
         print("map entry: " .. current_map[k])
         local entry = current_map[k]
         local entry_parts = M.split(entry, " ")
-        local entry_mapped, entry_unmapped = M.map_range(start, stop, entry_parts[1], entry_parts[2],
+        local entry_mapped, _ = M.map_range(start, stop, entry_parts[1], entry_parts[2],
             entry_parts[3])
 
         if entry_mapped then
             mapped = M.insertIntoMap(mapped, entry_mapped)
         end
+    end
 
-        -- THE ISSUE, everything is mapped, but not until the end, how can I loop through everything and only the the things that
-        -- never get mapped
+    if #mapped ~= 0 then
+        unmapped = M.reconstructUnmapped(mapped, start, stop)
     end
 
 
-
+    M.insertIntoMap(mapped, unmapped)
 
     return mapped, unmapped
 end
@@ -150,62 +183,30 @@ M.solve = function()
     end
 
     -- loop over each seed range
-    local loop_count = 1
     for i = 1, #maps do
-        if loop_count > 1 then
-            print("===== break =====")
-            break
-        end
         print("map " .. i)
         local mapped = {}
         for j = 1, #seed_ranges, 2 do
             local start = seed_ranges[j]
             local stop = seed_ranges[j] + seed_ranges[j + 1] - 1
             print("performing iterations for seed range " .. start .. " " .. seed_ranges[j + 1])
-            local r1_mapped, r1_unmapped = M.mapRange(maps[i], start, stop)
-            print("computed iteration for seed range " .. r1_mapped[1] .. " " .. r1_mapped[2])
-            -- seeds: 79 14 55 13
-            -- 79 14 -> seed-to-soil map -> 81 14
-            -- 55 13 -> seed-to-soil map -> 57 13
-
-            -- seed-to-soil map:
-            -- 50 98 2  :: 98 -> 99
-            -- 52 50 48 :: 50 -> 97
-
-            --
+            local r1_mapped, _ = M.mapRange(maps[i], start, stop)
 
             if r1_mapped then
-                print("mapped")
                 mapped = M.insertIntoMap(mapped, r1_mapped)
             end
-            print("===== investing unmapped =====")
-            for k = 1, #r1_unmapped, 2 do
-                print(r1_unmapped[k] .. " " .. r1_unmapped[k + 1])
-            end
-            if #r1_unmapped ~= 0 then
-                print("should not enter")
-                local r2_mapped, r2_unmapped
-                for k = 1, #r1_unmapped, 2 do
-                    r2_mapped, r2_unmapped = M.mapRange(maps[i], r1_unmapped[k], r1_unmapped[k + 1])
-                    if r2_mapped then
-                        mapped = M.insertIntoMap(mapped, r2_mapped)
-                    end
-                    if r2_unmapped then
-                        mapped = M.insertIntoMap(mapped, r2_unmapped)
-                    end
-                end
-            end
         end
-        loop_count = loop_count + 1
 
-        seed_ranges = mapped
+        if mapped ~= {} then
+            seed_ranges = mapped
+        end
     end
 
     print("final seed ranges")
-    for i = 1, #seed_ranges, 2 do
-        print(seed_ranges[i] .. " " .. seed_ranges[i + 1])
-    end
+    -- for i = 1, #seed_ranges, 2 do
+    --     print(seed_ranges[i] .. " " .. seed_ranges[i + 1])
+    -- end
 end
 
 print(M.solve())
-return M
+-- return M
