@@ -29,125 +29,6 @@ function M.split(inputstr, sep)
     return t
 end
 
-M.map_range = function(seed_start, seed_end, dest_low, source_low, interval)
-    seed_start = tonumber(seed_start)
-    seed_end = tonumber(seed_end)
-    interval = tonumber(interval)
-
-    local dest_start = tonumber(dest_low)
-    local dest_end = dest_start + interval
-    local source_start = tonumber(source_low)
-    local source_end = source_low + interval - 1
-
-    if not (seed_start and seed_end and interval and dest_start and dest_end and source_start and source_end) then
-        return nil, nil
-    end
-
-    print("seed interval: " .. seed_start .. "->" .. seed_end)
-    print("source interval: " .. source_start .. "->" .. source_end)
-    if seed_end < source_start or seed_start > source_end then
-        return nil, { seed_start, seed_end - seed_start + 1 }
-    end
-
-
-    local overlap_start = math.max(seed_start, source_start)
-    local overlap_end = math.min(seed_end, source_end)
-
-
-    -- dest_low + (value - source_low)
-    local mapped_start = dest_start + (overlap_start - source_start)
-    local mapped_end = dest_start + (overlap_end - source_start)
-    local mapped_interval = mapped_end - mapped_start + 1
-
-    local mapped = { mapped_start, mapped_interval }
-    print("mapped: " .. mapped[1] .. " " .. mapped[2])
-
-    -- check if it's a subset
-    if seed_start == overlap_start and seed_end == overlap_end then
-        print("we return out of here")
-        return mapped, nil
-    end
-
-    local unmapped = {}
-    if seed_start < overlap_start then
-        print("lower exclusion")
-        local lower_unmapped = seed_start
-        local lower_interval = (overlap_start - seed_start)
-        table.insert(unmapped, lower_unmapped)
-        table.insert(unmapped, lower_interval)
-    end
-
-    if overlap_end < seed_end then
-        print("upper exclusion")
-        local upper_unmapped = overlap_end + 1
-        local upper_interval = (seed_end - upper_unmapped) + 1
-        table.insert(unmapped, upper_unmapped)
-        table.insert(unmapped, upper_interval)
-    end
-
-    print("we are in here")
-    return mapped, unmapped
-end
-
-M.reconstructUnmapped = function(mapped, start, stop)
-    local unmapped = {}
-    start = tonumber(start)
-    stop = tonumber(stop)
-
-    for i = 1, #mapped, 2 do
-        print(mapped[i] .. " " .. mapped[i + 1])
-        local mapped_start = mapped[1]
-        local mapped_stop = mapped[1] + mapped[2] - 1
-
-        if mapped_start > start then
-            local lower_unmapped = start
-            -- 1 2 3 4 5
-            local lower_interval = mapped_start - start
-            table.insert(unmapped, lower_unmapped)
-            table.insert(unmapped, lower_interval)
-        end
-        start = mapped_stop + 1
-    end
-
-
-    local mapped_start = mapped[#mapped] - 1
-    local mapped_stop = mapped_start + mapped[#mapped] - 1
-    if mapped_stop < stop then
-        local upper_unmapped = mapped_stop + 1
-        local upper_interval = stop - upper_unmapped + 1
-        table.insert(unmapped, upper_unmapped)
-        table.insert(unmapped, upper_interval)
-    end
-    return unmapped
-end
-
-M.mapRange = function(current_map, start, stop)
-    print("--- mapRange ---")
-    local mapped = {}
-    local unmapped = {}
-
-    for k = 1, #current_map do
-        print("map entry: " .. current_map[k])
-        local entry = current_map[k]
-        local entry_parts = M.split(entry, " ")
-        local entry_mapped, _ = M.map_range(start, stop, entry_parts[1], entry_parts[2],
-            entry_parts[3])
-
-        if entry_mapped then
-            mapped = M.insertIntoMap(mapped, entry_mapped)
-        end
-    end
-
-    if #mapped ~= 0 then
-        unmapped = M.reconstructUnmapped(mapped, start, stop)
-    end
-
-
-    M.insertIntoMap(mapped, unmapped)
-
-    return mapped, unmapped
-end
-
 M.insertIntoMap = function(map, ranges)
     for i = 1, #ranges do
         table.insert(map, ranges[i])
@@ -155,9 +36,10 @@ M.insertIntoMap = function(map, ranges)
     return map
 end
 
+
 M.solve = function()
     -- get input
-    io.input("test_input.txt")
+    io.input("input.txt")
 
     -- read seed line and get seeds
     local line = io.read()
@@ -182,31 +64,65 @@ M.solve = function()
         maps[i] = fixed_map
     end
 
-    -- loop over each seed range
-    for i = 1, #maps do
-        print("map " .. i)
-        local mapped = {}
-        for j = 1, #seed_ranges, 2 do
-            local start = seed_ranges[j]
-            local stop = seed_ranges[j] + seed_ranges[j + 1] - 1
-            print("performing iterations for seed range " .. start .. " " .. seed_ranges[j + 1])
-            local r1_mapped, _ = M.mapRange(maps[i], start, stop)
 
-            if r1_mapped then
-                mapped = M.insertIntoMap(mapped, r1_mapped)
-            end
-        end
 
-        if mapped ~= {} then
-            seed_ranges = mapped
-        end
+    local seeds = {}
+    for i = 1, #seed_ranges, 2 do
+        table.insert(seeds, seed_ranges[i])
+        table.insert(seeds, seed_ranges[i] + seed_ranges[i + 1])
     end
 
-    print("final seed ranges")
-    -- for i = 1, #seed_ranges, 2 do
-    --     print(seed_ranges[i] .. " " .. seed_ranges[i + 1])
-    -- end
+    -- loop over each seed range
+    for i = 1, #maps do
+        local new = {}
+        while #seeds > 0 do
+            local matched = false
+            local e = tonumber(table.remove(seeds))
+            local s = tonumber(table.remove(seeds))
+            current_map = maps[i]
+            for k = 1, #current_map do
+                local entry = current_map[k]
+                local entry_parts = M.split(entry, " ")
+                local a, b, c = entry_parts[1], entry_parts[2], entry_parts[3]
+                a = tonumber(a)
+                b = tonumber(b)
+                c = tonumber(c)
+
+                local os = tonumber(math.max(s, b))
+                local oe = tonumber(math.min(e, b + c))
+                if os < oe then
+                    table.insert(new, os - b + a)
+                    table.insert(new, oe - b + a)
+                    if os > s then
+                        table.insert(seeds, s)
+                        table.insert(seeds, os)
+                    end
+                    if e > oe then
+                        table.insert(seeds, oe)
+                        table.insert(seeds, e)
+                    end
+                    matched = true
+                    break
+                else
+                end
+            end
+            if not matched then
+                table.insert(new, s)
+                table.insert(new, e)
+            end
+        end
+        seeds = new
+    end
+
+    pairs = {}
+    for i = 1, #seeds, 2 do
+        table.insert(pairs, { seeds[i], seeds[i + 1] })
+    end
+
+    table.sort(pairs, function(a, b)
+        return a[1] < b[1]
+    end)
+    print(pairs[1][1])
 end
 
 print(M.solve())
--- return M
