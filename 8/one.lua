@@ -18,6 +18,7 @@ local map = {}
 
 for line in io.lines() do
     parts = mysplit(line, " ")
+
     map[parts[1]] = { string.sub(parts[3], 2, 4), string.sub(parts[4], 1, 3) }
 end
 
