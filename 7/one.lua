@@ -20,16 +20,11 @@ end
 
 
 function isFourOfAKind(hand)
-    local wildcards = 0
     local counts = {}
-
     for i = 1, #hand do
         local char = hand:sub(i, i)
-        if char == "J" then  -- Assuming 'J' is the wildcard
-            wildcards = wildcards + 1
-        else
         counts[char] = (counts[char] or 0) + 1
-        if counts[char] + wildcards == 4 then
+        if counts[char] == 4 then
             return true
         end
     end
