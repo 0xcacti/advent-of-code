@@ -71,6 +71,10 @@ function isFullHouse(hand)
     local hasPair = false
     local hasThree = false
     local wildcards = 0
+    local pairChar = ""
+    local threeChar = ""
+
+    -- J2296
 
     for i = 1, #hand do
         local char = hand:sub(i, i)
@@ -84,27 +88,46 @@ function isFullHouse(hand)
 
     for char, v in pairs(counts) do
         if v == 3 then
+            threeChar = char
             hasThree = true
         elseif v == 2 then
+            pairChar = char
             hasPair = true
         end
     end
-    if hasPair and hasThree then
-        return true
-    elseif hasThree then
+    if hasThree and not hasPair then
         for char, v in pairs(counts) do
             if v < 2 and v + wildcards == 2 then
                 return true
             end
         end
-    elseif hasPair then
+    elseif hasPair and not hasThree then
+        pairCount = 0
         for char, v in pairs(counts) do
-            if v < 3 and v + wildcards == 3 then
-                return true
+            if v == 2 then
+                pairCount = pairCount + 1
+            end
+        end
+        if pairCount == 2 and wildcards == 1 then
+            return true
+        end
+    else
+        if not hasPair and not hasThree then
+            for char, v in pairs(counts) do
+                if v < 2 and v + wildcards == 2 then
+                    hasPair = true
+                    wildcards = wildcards - (2 - v)
+                end
+            end
+            for char, v in pairs(counts) do
+                if v < 3 and v + wildcards == 3 then
+                    hasThree = true
+                    wildcards = wildcards - (3 - v)
+                end
             end
         end
     end
-    return false
+    return hasPair and hasThree
 end
 
 function isThreeOfAKind(hand)
@@ -269,3 +292,4 @@ for i = 1, #handsAndBids do
     print(handsAndBids[i][1] .. " " .. mapHand(getHandRank(handsAndBids[i][1])))
 end
 print(winning)
+-- print(isFullHouse("J2296"))
