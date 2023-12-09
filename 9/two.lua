@@ -42,13 +42,16 @@ end
 
 local last_vals = {}
 for sequence, subsequences in pairs(sequence_map) do
-    local last_value = 0
+    print("Sequence: " .. table.concat(sequence, " "))
+    local first_value = 0
     for i = #subsequences, 1, -1 do
-        last_value = last_value + subsequences[i][#subsequences[i]]
+        first_value = subsequences[i][1] - first_value
     end
-    last_value = last_value + sequence[#sequence]
-    table.insert(last_vals, last_value)
+    first_value = sequence[1] - first_value
+
+    table.insert(last_vals, first_value)
 end
+
 
 sum = 0
 for i, val in ipairs(last_vals) do
