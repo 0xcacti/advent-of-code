@@ -1,4 +1,4 @@
-io.input("two_test_input.txt")
+io.input("input.txt")
 function mysplit(inputstr, sep)
     if sep == nil then
         sep = "%s"
@@ -50,8 +50,11 @@ for j, row in ipairs(map) do
     for i, c in ipairs(row) do
         if c == "S" then
             sLoc = nodeKey({ i, j })
+            -- addNode(graph, nodeKey({ i, j }))
+            -- addEdge(graph, nodeKey({ i, j }), nodeKey({ i - 1, j }))
+            -- addEdge(graph, nodeKey({ i, j }), nodeKey({ i, j - 1 }))
             addNode(graph, nodeKey({ i, j }))
-            addEdge(graph, nodeKey({ i, j }), nodeKey({ i + 1, j }))
+            addEdge(graph, nodeKey({ i, j }), nodeKey({ i - 1, j }))
             addEdge(graph, nodeKey({ i, j }), nodeKey({ i, j + 1 }))
             goto continue
         elseif c == "." then
@@ -112,9 +115,70 @@ function detectCycle(start_node, path)
     return DFS(start_node, visited, nil, path)
 end
 
-function isInsideLoop(node, path)
-    for _, n in pairs(path) do
-        if n == node then
+function isInPath(node, path)
+    for _, p in pairs(path) do
+        if p[1] == node[1] and p[2] == node[2] then
+            return true
+        end
+    end
+    return false
+end
+
+function isInsideLoopHorizontal(node, path, maxX)
+    local intersectionCount = 0
+    while node[1] <= maxX do
+        for _, p in pairs(path) do
+            if p[1] == node[1] and p[2] == node[2] then
+                intersectionCount = intersectionCount + 1
+            end
+        end
+        node[1] = node[1] + 1
+    end
+    if intersectionCount % 2 == 0 then
+        return false
+    else
+        return true
+    end
+end
+
+function isInside(node, path)
+    local intersectionCount = 0
+
+    for _, edge in ipairs(path) do
+        -- Assuming each 'edge' is a table {x1, y1, x2, y2} representing two points on the edge
+        if (edge[2] > node[2]) ~= (edge[4] > node[2]) then
+            -- Check if the edge crosses the y-coordinate of the node
+            local xCross = edge[1] + (node[2] - edge[2]) * (edge[3] - edge[1]) / (edge[4] - edge[2])
+            if xCross > node[1] then
+                -- Only count if the intersection is to the right of the node
+                intersectionCount = intersectionCount + 1
+            end
+        end
+    end
+
+    return intersectionCount % 2 == 1
+end
+
+-- function isInsideLoopVertical(node, path, maxY)
+--     local intersectionCount = 0
+--     while node[2] <= maxY do
+--         for _, p in pairs(path) do
+--             if p[1] == node[1] and p[2] == node[2] then
+--                 intersectionCount = intersectionCount + 1
+--             end
+--         end
+--         node[2] = node[2] + 1
+--     end
+--     if intersectionCount % 2 == 0 then
+--         return false
+--     else
+--         return true
+--     end
+-- end
+
+function isOnEdge(node, path)
+    for _, p in pairs(path) do
+        if p[1] == node[1] and p[2] == node[2] then
             return true
         end
     end
@@ -130,23 +194,6 @@ else
 end
 
 
-function calculateArea(path)
-    local area = 0
-    for i = 1, #path - 1 do
-        local x1, y1 = table.unpack(path[i])
-        local x2, y2 = table.unpack(path[i + 1])
-        area = area + (x1 * y2 - y1 * x2)
-    end
-    -- Close the polygon
-    local x1, y1 = table.unpack(path[#path])
-    local x2, y2 = table.unpack(path[1])
-    area = area + (x1 * y2 - y1 * x2)
-
-    return math.abs(area) / 2
-end
-
-print(#path - 1)
-
 -- Convert your path to a list of coordinates
 -- Example: path = {{1, 2}, {3, 4}, {5, 6}, ...}
 --
@@ -155,7 +202,35 @@ for _, node in pairs(path) do
     local p = mysplit(string.sub(node, 2, #node - 1), ",")
     table.insert(updated_path, { tonumber(p[1]), tonumber(p[2]) })
 end
+edges = {}
+for i = 1, #updated_path do
+    local nextIndex = (i % #updated_path) + 1 -- This will loop back to the first point after the last one
+    local currentNode = updated_path[i]
+    local nextNode = updated_path[nextIndex]
+    table.insert(edges, { currentNode[1], currentNode[2], nextNode[1], nextNode[2] })
+end
+
+count = 0
+for j = 1, #map do
+    for i = 1, #map[j] do
+        if isInPath({ i, j }, updated_path) then
+            goto next
+        end
+        -- if isInsideLoopHorizontal({ i, j }, updated_path, #map[j], edges) then
+        --     print("Inside loop: (" .. i .. "," .. j .. ")")
+        --     count = count + 1
+        -- end
+        if isInside({ i, j }, edges) then
+            print("Inside loop: (" .. i .. "," .. j .. ")")
+            count = count + 1
+        end
+        ::next::
+    end
+end
+print("Count: " .. count)
+print(count)
 
 
-local area = calculateArea(updated_path)
-print("Area: " .. area)
+
+local testPoint = { 3, 7 }
+-- print(isInsideLoop(testPoint, updated_path, #map[3]))

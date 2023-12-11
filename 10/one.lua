@@ -1,4 +1,4 @@
-io.input("input.txt")
+io.input("two_test_input.txt")
 
 
 map = {}
