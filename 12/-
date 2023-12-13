@@ -1,0 +1,6 @@
+io.input("input.txt")
+-- _._#_#__#_._#_____ 4,2,5
+-- how many ways to create
+-- groups of 4, 2, and 5
+-- from 18 total spots
+-- with 12 total open spots
