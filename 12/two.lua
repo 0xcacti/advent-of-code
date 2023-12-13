@@ -15,12 +15,23 @@ function parseInput()
     lines = {}
     for line in io.lines() do
         split = mysplit(line, " ")
-        chunks = mysplit(split[2], ",")
+        originalChunks = mysplit(split[2], ",")
 
-        for i, chunk in ipairs(chunks) do
+        lastI = 1
+        len = #originalChunks * 5
+        local chunks = {}
+        for i = 1, len do
+            local chunk = originalChunks[(i - 1) % #originalChunks + 1]
             chunks[i] = tonumber(chunk)
+            print(i, chunk)
         end
-        table.insert(lines, { split[1] .. ".", chunks })
+        print()
+        local line = ""
+        for i = 1, 4 do
+            line = line .. split[1] .. "?"
+        end
+        line = line .. split[1] .. "."
+        table.insert(lines, { line, chunks })
     end
     return lines
 end
