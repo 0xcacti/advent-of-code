@@ -35,60 +35,117 @@ function equalColumns(note, col1, col2)
     return true
 end
 
-function columnsDifferByOne(note, col1, col2)
+function linesDifferByAtMostOne(line1, line2)
+    local diffCount = 0
+    for i = 1, #line1 do
+        if line1[i] ~= line2[i] then
+            diffCount = diffCount + 1
+            if diffCount > 1 then
+                return false, diffCount
+            end
+        end
+    end
+    return true, diffCount
+end
+
+function columnsDifferByAtMostOne(note, col1, col2)
     local diffCount = 0
     for i = 1, #note do
         if note[i][col1] ~= note[i][col2] then
             diffCount = diffCount + 1
+            if diffCount > 1 then
+                return false, diffCount
+            end
         end
     end
-    return diffCount == 1
+    return true, diffCount
 end
 
-function fixColumnSmudge(note, col1, col2)
-    for i = 1, #note do
-        if note[i][col1] ~= note[i][col2] then
-            note[i][col1] = note[i][col2]
-            return
-        end
-    end
-end
-
-function findVerticalSmudge(note)
-    -- for each column in note
-    for i = 2, #note[1] do
-        if columnsDifferByOne(note, i - 1, i) then
-            fixColumnSmudge(note, i - 1, i)
-        end
-    end
-end
-
-function linesDifferByOne(note, line1, line2)
+function checkVerticalSymmetry(note, line1, line2)
+    local bound = math.min(line1 - 1, (#note - line2))
     local diffCount = 0
-    for i = 1, #note[line1] do
-        if note[line1][i] ~= note[line2][i] then
-            diffCount = diffCount + 1
+
+    for i = 1, bound do
+        isSym, difference = linesDifferByAtMostOne(note[line1 - i], note[line2 + i])
+        if not isSym then
+            return 0
+        else
+            diffCount = diffCount + difference
         end
     end
-    return diffCount == 1
+
+    if bound == 0 then
+        isSym, difference = linesDifferByAtMostOne(note[line1], note[line2])
+        if not isSym then
+            return 0
+        else
+            diffCount = diffCount + difference
+        end
+    end
+    if diffCount == 1 then
+        return line1
+    end
+    return 0
 end
 
-function fixLineSmudge(note, line1, line2)
-    for i = 1, #note[line1] do
-        if note[line1][i] ~= note[line2][i] then
-            note[line1][i] = note[line2][i]
-            return
+function checkHorizontalSymmetry(note, line1, line2)
+    print("Checking horizontal symmetry")
+    print("Line1: " .. line1)
+    print("Line2: " .. line2)
+    local bound = math.min(line1 - 1, (#note[1] - line2))
+    print("Bound: " .. bound)
+    local diffCount = 0
+    for i = 1, bound do
+        isSym, difference = columnsDifferByAtMostOne(note, line1 - i, line2 + i)
+        if not isSym then
+            return 0
+        else
+            diffCount = diffCount + difference
         end
     end
+    if bound == 0 then
+        isSym, difference = columnsDifferByAtMostOne(note, line1, line2)
+        if not isSym then
+            print("Not sym")
+            return 0
+        else
+            print("adding diff")
+            print("diff: " .. difference)
+            diffCount = diffCount + difference
+            print("diffCount: " .. diffCount)
+            for i = 1, #note do
+                print(note[i][line1] .. " " .. note[i][line2])
+            end
+        end
+    end
+    if diffCount == 1 then
+        return line1
+    end
+    return 0
 end
 
 function findHorizontalSmudge(note)
-    -- for each column in note
+    recentLine = {}
+    local lineCount = 0
     for i = 2, #note do
-        if linesDifferByOne(note, i - 1, i) then
-            fixLineSmudge(note, i - 1, i)
+        symLineCount = checkVerticalSymmetry(note, i - 1, i)
+        if lineCount == 0 then
+            lineCount = symLineCount
         end
     end
+    return lineCount
+end
+
+function findVerticalSmudge(note)
+    local lineCount = 0
+    -- for each column in note
+    for i = 2, #note[1] do
+        symLineCount = checkHorizontalSymmetry(note, i - 1, i)
+        if lineCount == 0 then
+            lineCount = symLineCount
+        end
+    end
+    return lineCount
 end
 
 local input = io.read("*all")
@@ -137,8 +194,18 @@ function printTable(note)
 end
 
 for i, note in ipairs(notebook) do
-    totalVertical = totalVertical + findVerticalMatch(note)
-    totalHorizontal = totalHorizontal + findHorizontalMatch(note)
+    printTable(note)
+    verticalSmudge = findVerticalSmudge(note)
+    horizontalSmudge = findHorizontalSmudge(note)
+    if verticalSmudge ~= 0 then
+        print(verticalSmudge)
+    end
+    if horizontalSmudge ~= 0 then
+        print(100 * horizontalSmudge)
+    end
+
+    totalVertical = totalVertical + findVerticalSmudge(note)
+    totalHorizontal = totalHorizontal + findHorizontalSmudge(note)
 end
 
 print(100 * totalHorizontal + totalVertical)

@@ -1,3 +1,7 @@
+
+def printMirror(m):
+    print("\n".join(m))
+
 from itertools import chain
 
 def find_mirrors(pattern):
@@ -61,6 +65,8 @@ def find_mirrors_smudged(pattern):
         if ndiff == 1:
             return 100 * i
 
+    print("\n".join(pattern))
+    raise ValueError("No line of reflection found")
 
 def day13_part1(filename):
     with open(filename) as f:
@@ -69,15 +75,6 @@ def day13_part1(filename):
         mirrors = list(map(lambda s: s.split("\n"), mirrors))
         mirrors[-1] = mirrors[-1][:-1] #  remove trailing newline
     
-    count = 1
-    for m in mirrors:
-        print("count: " + str(count))
-
-        # printMirror(m)
-        print(find_mirrors(m))
-        if find_mirrors(m) == 3:
-            printMirror(m)
-        print()
     return sum(find_mirrors(m) for m in mirrors)
 
 def day13_part2(filename):
@@ -86,15 +83,15 @@ def day13_part2(filename):
         mirrors = lines.split("\n\n")
         mirrors = list(map(lambda s: s.split("\n"), mirrors))
         mirrors[-1] = mirrors[-1][:-1] #  remove trailing newline
+    count = 1
     for m in mirrors:
         print(find_mirrors_smudged(m))
+        # printMirror(m)
+        count += 1
+        # print()
     
     return sum(find_mirrors_smudged(m) for m in mirrors)
 
-def printMirror(m):
-    print("\n".join(m))
-
-
 if __name__ == "__main__":
-    print("Part 1", day13_part1("input.txt"))
+    print("Part 2", day13_part2("input.txt"))
 
