@@ -89,11 +89,11 @@ function checkVerticalSymmetry(note, line1, line2)
 end
 
 function checkHorizontalSymmetry(note, line1, line2)
-    print("Checking horizontal symmetry")
-    print("Line1: " .. line1)
-    print("Line2: " .. line2)
+    -- print("Checking horizontal symmetry")
+    -- print("Line1: " .. line1)
+    -- print("Line2: " .. line2)
     local bound = math.min(line1 - 1, (#note[1] - line2))
-    print("Bound: " .. bound)
+    -- print("Bound: " .. bound)
     local diffCount = 0
     for i = 1, bound do
         isSym, difference = columnsDifferByAtMostOne(note, line1 - i, line2 + i)
@@ -106,16 +106,16 @@ function checkHorizontalSymmetry(note, line1, line2)
     if bound == 0 then
         isSym, difference = columnsDifferByAtMostOne(note, line1, line2)
         if not isSym then
-            print("Not sym")
+            -- print("Not sym")
             return 0
         else
-            print("adding diff")
-            print("diff: " .. difference)
+            -- print("adding diff")
+            -- print("diff: " .. difference)
             diffCount = diffCount + difference
-            print("diffCount: " .. diffCount)
-            for i = 1, #note do
-                print(note[i][line1] .. " " .. note[i][line2])
-            end
+            -- print("diffCount: " .. diffCount)
+            -- for i = 1, #note do
+            --     print(note[i][line1] .. " " .. note[i][line2])
+            -- end
         end
     end
     if diffCount == 1 then
@@ -194,7 +194,7 @@ function printTable(note)
 end
 
 for i, note in ipairs(notebook) do
-    printTable(note)
+    -- printTable(note)
     verticalSmudge = findVerticalSmudge(note)
     horizontalSmudge = findHorizontalSmudge(note)
     if verticalSmudge ~= 0 then
