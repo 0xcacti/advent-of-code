@@ -39,7 +39,10 @@ function findVerticalMatch(note)
     -- for each column in note
     for i = 2, #note[1] do
         if equalColumns(note, i - 1, i) then
-            lineCount = checkHorizontalSymmetry(note, i - 1, i)
+            symLineCount = checkHorizontalSymmetry(note, i - 1, i)
+            if lineCount == 0 then
+                lineCount = symLineCount
+            end
         end
     end
     return lineCount
@@ -72,9 +75,15 @@ end
 function checkHorizontalSymmetry(note, line1, line2)
     -- find loop bound
     local lineCount = 0
+    print("checkHorizontalSymmetry")
+    print("line1: " .. line1)
+    print("line2: " .. line2)
     local bound = math.min(line1 - 1, (#note[1] - line2))
+    print("bound: " .. bound)
     for i = 1, bound do
         if not equalColumns(note, line1 - i, line2 + i) then
+            print("not equal at indicies" .. (line1 - i) .. " " .. (line2 + i))
+
             return 0
         end
     end
@@ -127,7 +136,7 @@ function printTable(note)
 end
 
 for i, note in ipairs(notebook) do
-    --printTable(note)
+    printTable(note)
     v = findVerticalMatch(note)
     h = findHorizontalMatch(note)
     if v ~= 0 then
@@ -136,10 +145,8 @@ for i, note in ipairs(notebook) do
     if h ~= 0 then
         print(h * 100)
     end
-    print("----")
     totalVertical = totalVertical + findVerticalMatch(note)
     totalHorizontal = totalHorizontal + findHorizontalMatch(note)
-    -- end
 end
 
 print(100 * totalHorizontal + totalVertical)

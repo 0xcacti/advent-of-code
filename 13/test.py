@@ -39,9 +39,16 @@ def day13_part1(filename):
         mirrors = list(map(lambda s: s.split("\n"), mirrors))
         mirrors[-1] = mirrors[-1][:-1] #  remove trailing newline
     
+    count = 1
     for m in mirrors:
-        printMirror(m)
+        print("count: " + str(count))
+
+        # printMirror(m)
         print(find_mirrors(m))
+        if find_mirrors(m) == 3:
+            printMirror(m)
+        print()
+        count += 1
     return sum(find_mirrors(m) for m in mirrors)
 
 def printMirror(m):
