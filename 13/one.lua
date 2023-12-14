@@ -75,15 +75,9 @@ end
 function checkHorizontalSymmetry(note, line1, line2)
     -- find loop bound
     local lineCount = 0
-    print("checkHorizontalSymmetry")
-    print("line1: " .. line1)
-    print("line2: " .. line2)
     local bound = math.min(line1 - 1, (#note[1] - line2))
-    print("bound: " .. bound)
     for i = 1, bound do
         if not equalColumns(note, line1 - i, line2 + i) then
-            print("not equal at indicies" .. (line1 - i) .. " " .. (line2 + i))
-
             return 0
         end
     end
@@ -136,15 +130,6 @@ function printTable(note)
 end
 
 for i, note in ipairs(notebook) do
-    printTable(note)
-    v = findVerticalMatch(note)
-    h = findHorizontalMatch(note)
-    if v ~= 0 then
-        print(v)
-    end
-    if h ~= 0 then
-        print(h * 100)
-    end
     totalVertical = totalVertical + findVerticalMatch(note)
     totalHorizontal = totalHorizontal + findHorizontalMatch(note)
 end
