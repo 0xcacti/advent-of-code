@@ -31,6 +31,11 @@ function parseInput()
             line = line .. split[1] .. "?"
         end
         line = line .. split[1] .. "."
+        print(line)
+        for i = 1, #chunks do
+            io.write(chunks[i] .. " ")
+        end
+        print()
         table.insert(lines, { line, chunks })
     end
     return lines
@@ -48,12 +53,26 @@ function getNewGroup(group)
     return newGroup
 end
 
+local memo = {}
+local function createKey(line, groups, size)
+    local groupsKey = table.concat(groups or {}, ",")
+    return line .. ":" .. groupsKey .. ":" .. tostring(size)
+end
+
 function recurse(line, groups, size)
     size = size or 0
+    local key = createKey(line, groups, size)
+    if memo[key] then
+        return memo[key]
+    end
+
+
     if line == "" or line == nil then
         if (groups == nil or #groups == 0) and (size == 0) then
+            memo[key] = 1
             return 1
         else
+            memo[key] = 0
             return 0
         end
     end
@@ -74,6 +93,7 @@ function recurse(line, groups, size)
             end
         end
     end
+    memo[key] = lineSolutions
     return lineSolutions
 end
 
