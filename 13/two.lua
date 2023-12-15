@@ -65,29 +65,16 @@ function checkVerticalSymmetry(note, line1, line2)
     local bound = math.min(line1 - 1, (#note - line2))
     local diffCount = 0
 
-    print("Checking horizontal symmetry")
-    print("Line1: " .. line1)
-    print("Line2: " .. line2)
-    print("Bound: " .. bound)
     isSymBefore, differenceBefore = linesDifferByAtMostOne(note[line1], note[line2]) -- am I doing this too many times
     diffCount = diffCount + differenceBefore
 
 
     for i = 1, bound do
-        -- print("do we enter here?")
         isSymAfter, difference = linesDifferByAtMostOne(note[line1 - i], note[line2 + i])
         if not isSymAfter or not isSymBefore then
             return 0
         else
             diffCount = diffCount + difference
-            -- for j = 1, #note[i] do
-            --     io.write(note[line1][j] .. " ")
-            -- end
-            -- print()
-            -- for j = 1, #note[i] do
-            --     io.write(note[line2][j] .. " ")
-            -- end
-            -- print(diffCount)
         end
     end
 
@@ -98,11 +85,7 @@ function checkVerticalSymmetry(note, line1, line2)
 end
 
 function checkHorizontalSymmetry(note, line1, line2)
-    -- print("Checking horizontal symmetry")
-    -- print("Line1: " .. line1)
-    -- print("Line2: " .. line2)
     local bound = math.min(line1 - 1, (#note[1] - line2))
-    -- print("Bound: " .. bound)
     local diffCount = 0
     isSymBefore, differenceBefore = columnsDifferByAtMostOne(note, line1, line2)
     diffCount = diffCount + differenceBefore
@@ -191,10 +174,6 @@ function printTable(note)
 end
 
 for i, note in ipairs(notebook) do
-    -- printTable(note)
-    -- printTable(note)
-    -- if i == 44 then
-    --printTable(note)
     verticalSmudge = findVerticalSmudge(note)
     horizontalSmudge = findHorizontalSmudge(note)
     if verticalSmudge ~= 0 then
@@ -206,7 +185,6 @@ for i, note in ipairs(notebook) do
 
     totalVertical = totalVertical + findVerticalSmudge(note)
     totalHorizontal = totalHorizontal + findHorizontalSmudge(note)
-    -- end
 end
 
 print(100 * totalHorizontal + totalVertical)
