@@ -85,9 +85,10 @@ def day13_part2(filename):
         mirrors[-1] = mirrors[-1][:-1] #  remove trailing newline
     count = 1
     for m in mirrors:
-        print(find_mirrors_smudged(m))
-        # printMirror(m)
+        if count == 44:
+            print(find_mirrors_smudged(m))
         count += 1
+        # printMirror(m)
         # print()
     
     return sum(find_mirrors_smudged(m) for m in mirrors)

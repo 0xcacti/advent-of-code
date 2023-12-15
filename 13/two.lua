@@ -65,23 +65,32 @@ function checkVerticalSymmetry(note, line1, line2)
     local bound = math.min(line1 - 1, (#note - line2))
     local diffCount = 0
 
+    print("Checking horizontal symmetry")
+    print("Line1: " .. line1)
+    print("Line2: " .. line2)
+    print("Bound: " .. bound)
+    isSymBefore, differenceBefore = linesDifferByAtMostOne(note[line1], note[line2]) -- am I doing this too many times
+    diffCount = diffCount + differenceBefore
+
+
     for i = 1, bound do
-        isSym, difference = linesDifferByAtMostOne(note[line1 - i], note[line2 + i])
-        if not isSym then
+        -- print("do we enter here?")
+        isSymAfter, difference = linesDifferByAtMostOne(note[line1 - i], note[line2 + i])
+        if not isSymAfter or not isSymBefore then
             return 0
         else
             diffCount = diffCount + difference
+            -- for j = 1, #note[i] do
+            --     io.write(note[line1][j] .. " ")
+            -- end
+            -- print()
+            -- for j = 1, #note[i] do
+            --     io.write(note[line2][j] .. " ")
+            -- end
+            -- print(diffCount)
         end
     end
 
-    if bound == 0 then
-        isSym, difference = linesDifferByAtMostOne(note[line1], note[line2])
-        if not isSym then
-            return 0
-        else
-            diffCount = diffCount + difference
-        end
-    end
     if diffCount == 1 then
         return line1
     end
@@ -95,27 +104,15 @@ function checkHorizontalSymmetry(note, line1, line2)
     local bound = math.min(line1 - 1, (#note[1] - line2))
     -- print("Bound: " .. bound)
     local diffCount = 0
+    isSymBefore, differenceBefore = columnsDifferByAtMostOne(note, line1, line2)
+    diffCount = diffCount + differenceBefore
+
     for i = 1, bound do
         isSym, difference = columnsDifferByAtMostOne(note, line1 - i, line2 + i)
-        if not isSym then
+        if not isSym or not isSymBefore then
             return 0
         else
             diffCount = diffCount + difference
-        end
-    end
-    if bound == 0 then
-        isSym, difference = columnsDifferByAtMostOne(note, line1, line2)
-        if not isSym then
-            -- print("Not sym")
-            return 0
-        else
-            -- print("adding diff")
-            -- print("diff: " .. difference)
-            diffCount = diffCount + difference
-            -- print("diffCount: " .. diffCount)
-            -- for i = 1, #note do
-            --     print(note[i][line1] .. " " .. note[i][line2])
-            -- end
         end
     end
     if diffCount == 1 then
@@ -195,6 +192,9 @@ end
 
 for i, note in ipairs(notebook) do
     -- printTable(note)
+    -- printTable(note)
+    -- if i == 44 then
+    --printTable(note)
     verticalSmudge = findVerticalSmudge(note)
     horizontalSmudge = findHorizontalSmudge(note)
     if verticalSmudge ~= 0 then
@@ -206,6 +206,7 @@ for i, note in ipairs(notebook) do
 
     totalVertical = totalVertical + findVerticalSmudge(note)
     totalHorizontal = totalHorizontal + findHorizontalSmudge(note)
+    -- end
 end
 
 print(100 * totalHorizontal + totalVertical)
