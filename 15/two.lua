@@ -33,18 +33,68 @@ function clean(input)
     return cleanedInput
 end
 
-function solve()
-    local inputs = getInput("test_input.txt")
-
-    local box = {}
-    for i, inp in ipairs(inputs) do
-        label = inp:sub(1, 2)
-        operator = inp:sub(3, 3)
-        value = inp:sub(4, 4)
-        if operator == "=" then
-            box[hash(label)] = value
+function contains(table, val)
+    for i = 1, #table do
+        if mysplit(table[i], " ")[1] == val then
+            return true, i
         end
     end
+    return false, -1
+end
+
+function printBoxes(boxes)
+    for k, v in pairs(boxes) do
+        print("Box " .. k .. " has:")
+        for i, j in ipairs(v) do
+            io.write(j .. " ")
+        end
+    end
+end
+
+function solve()
+    local inputs = getInput("input.txt")
+
+    local box = {}
+    for i = 0, 255 do
+        box[i] = {}
+    end
+
+    for i, inp in ipairs(inputs) do
+        inp = clean(inp)
+        e = string.sub(inp, string.len(inp), string.len(inp))
+
+        if e == "-" then
+            label = string.sub(inp, 1, string.len(inp) - 1)
+            for k, v in ipairs(box[hash(label)]) do
+                if mysplit(v, " ")[1] == label then
+                    table.remove(box[hash(label)], k)
+                end
+            end
+        else
+            local label, value = table.unpack(mysplit(inp, "="))
+
+            entry = label .. " " .. value
+            existing = box[hash(label)]
+
+            contained, index = contains(existing, label)
+            if contained then
+                box[hash(label)][index] = entry
+            else
+                table.insert(box[hash(label)], entry)
+            end
+        end
+    end
+
+    local ans = 0
+
+
+    for k, v in pairs(box) do
+        for i, j in ipairs(v) do
+            value = mysplit(j, " ")[2]
+            ans = ans + ((k + 1) * value * i)
+        end
+    end
+    return ans
 end
 
 print(solve())
