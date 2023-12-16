@@ -1,5 +1,5 @@
 function loadPuzzle()
-    io.input("input.txt")
+    io.input("test_input.txt")
     local puzzle = {}
     for line in io.lines() do
         local row = {}
