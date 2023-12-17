@@ -1,0 +1,56 @@
+function mysplit(inputstr, sep)
+    if sep == nil then
+        sep = "%s"
+    end
+    local t = {}
+    for str in string.gmatch(inputstr, "([^" .. sep .. "]+)") do
+        table.insert(t, str)
+    end
+    return t
+end
+
+function getInput(path)
+    io.input(path)
+    local inp = {}
+    for line in io.lines() do
+        local row = {}
+        for c in line:gmatch(".") do
+            table.insert(row, c)
+        end
+        table.insert(inp, row)
+    end
+    return inp
+end
+
+function printInput(inp)
+    for _, row in ipairs(inp) do
+        for _, c in ipairs(row) do
+            io.write(c)
+        end
+        io.write("\n")
+    end
+end
+
+function trackLight(grid, x, y, dx, dy)
+    local count = 0
+    next = grid[y + dy][x + dx]
+    if next == "." then
+        trackLight(grid, x + dx, y + dy, dx, dy)
+    elseif next == "-" then
+        if dx == 1 then
+            trackLight(grid, x + dx, y + dy, dx, dy)
+        end
+    elseif next == "|" then
+    elseif next == "/" then
+    elseif next == "\\" then
+    else
+        count = count + 1
+    end
+end
+
+function solve(path)
+    local inputs = getInput(path)
+    printInput(inputs)
+end
+
+print(solve("test_input.txt"))
