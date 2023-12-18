@@ -97,17 +97,55 @@ function trackLight(grid, x, y, dx, dy, visited, count, path)
     return count
 end
 
-function solve(path)
-    local inputs = getInput(path)
-    printInput(inputs)
+function solve(map)
+    local inputs = getInput(map)
 
-    local visited = {}
-    local path = {}
-    local count = { 0 }
-    print(inputs[9][1])
-    print()
-    count = trackLight(inputs, 1, 1, 1, 0, visited, count, path)
-    return count[1]
+    local counts = {}
+
+    -- Loop for top row (y = 1, varying x)
+    for x = 1, #inputs[1] do
+        local visited = {}
+        local path = {}
+        local count = { 0 }
+        count = trackLight(inputs, x, 1, 0, 1, visited, count, path)
+        table.insert(counts, count[1])
+    end
+
+    -- Loop for bottom row (y = #inputs, varying x)
+    for x = 1, #inputs[1] do
+        local visited = {}
+        local path = {}
+        local count = { 0 }
+        count = trackLight(inputs, x, #inputs, 0, -1, visited, count, path)
+        table.insert(counts, count[1])
+    end
+
+    -- Loop for left column (x = 1, varying y)
+    for y = 1, #inputs do
+        local visited = {}
+        local path = {}
+        local count = { 0 }
+        count = trackLight(inputs, 1, y, 1, 0, visited, count, path)
+        table.insert(counts, count[1])
+    end
+
+    -- Loop for right column (x = #inputs[1], varying y)
+    for y = 1, #inputs do
+        local visited = {}
+        local path = {}
+        local count = { 0 }
+        count = trackLight(inputs, #inputs[1], y, -1, 0, visited, count, path)
+        table.insert(counts, count[1])
+    end
+
+
+    local max = 0
+    for _, v in ipairs(counts) do
+        if v > max then
+            max = v
+        end
+    end
+    return max
 end
 
 print(solve("input.txt"))
