@@ -32,7 +32,6 @@ function printInput(inp)
 end
 
 function trackLight(grid, x, y, dx, dy, visited, count, path)
-    print("x: " .. x .. " y: " .. y .. " dx: " .. dx .. " dy: " .. dy)
     if x < 1 or x > #grid[1] or y < 1 or y > #grid then
         return count
     end
