@@ -40,16 +40,11 @@ end
 
 function getDirections()
     directions = {}
-    directions[3] = { 0, -1 }
-    directions[1] = { 0, 1 }
-    directions[0] = { 1, 0 }
-    directions[2] = { -1, 0 }
+    directions["U"] = { 0, -1 }
+    directions["D"] = { 0, 1 }
+    directions["R"] = { 1, 0 }
+    directions["L"] = { -1, 0 }
     return directions
-end
-
-function decodeHex(hex)
-    local val = tonumber(string.sub(hex, 1, #hex - 1), 16)
-    return val, tonumber(string.sub(hex, #hex, #hex), 16)
 end
 
 function getPoints(input, directions)
@@ -59,9 +54,8 @@ function getPoints(input, directions)
 
     for _, row in ipairs(input) do
         local direction, distance, color = row[1], row[2], row[3]
-        distance, direction = decodeHex(color)
         totalBoundryPoints = totalBoundryPoints + tonumber(distance)
-
+        print(direction)
         if directions[direction] == nil then
             break
         end
@@ -84,4 +78,4 @@ function solve(path)
     return (internal + boundryPoints)
 end
 
-print(solve("input.txt"))
+print(solve("test_input.txt"))
