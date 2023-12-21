@@ -19,17 +19,17 @@ def count(ranges, name = "in"):
     if name == "A":
         product = 1
         for lo, hi in ranges.values():
+            print(lo, hi)
             product *= hi - lo + 1
         return product
     
     rules, fallback = workflows[name]
-
     total = 0
 
     c = 0
     for key, cmp, n, target in rules:
-        print(key, cmp, n, target)
-        print(total)
+        print("Rule: " + str(key) + " " + str(cmp) + " " + str(n) + " " + str(target))
+
         lo, hi = ranges[key]
         if cmp == "<":
             T = (lo, min(n - 1, hi))

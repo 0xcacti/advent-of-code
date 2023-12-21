@@ -87,10 +87,6 @@ function printInputs(inputs)
     end
 end
 
-function getRulesAndDefault(parts)
-    -- rfg{s<537:gd,x>2440:R,A}
-end
-
 function deepCopy(original)
     local copy
     if type(original) == 'table' then
@@ -112,6 +108,7 @@ function findCombinations(ranges, workflows, name)
         product = 1
         for key, val in pairs(ranges) do
             local lo, hi = val[1], val[2]
+            print(lo, hi)
             product = product * (hi - lo + 1)
         end
         return product
@@ -126,14 +123,14 @@ function findCombinations(ranges, workflows, name)
     for _, rule in ipairs(rules) do
         local key, cmp, n, target = rule[1], rule[2], rule[3], rule[4]
         print("Rule: " .. key .. " " .. cmp .. " " .. n .. " " .. target)
-        local lo, hi = ranges[key][1], ranges[key][2]
+        local lo, hi = tonumber(ranges[key][1]), tonumber(ranges[key][2])
         local accepted, rejected
         if cmp == "<" then
-            accepted = { lo, math.min(hi, n - 1) }
+            accepted = { lo, math.min(n - 1, hi) }
             rejected = { math.max(lo, n), hi }
         else
-            accepted = { math.max(lo, n + 1), hi }
-            rejected = { lo, math.min(hi, n) }
+            accepted = { math.max(n + 1, lo), hi }
+            rejected = { lo, math.min(n, hi) }
         end
         if accepted[1] <= accepted[2] then
             copy = deepCopy(ranges)
@@ -161,12 +158,12 @@ end
 function solve(path)
     local inputs, rules = getInput(path)
     local ranges = {}
-    ranges["x"] = { 0, 4000 }
-    ranges["m"] = { 0, 4000 }
-    ranges["a"] = { 0, 4000 }
-    ranges["s"] = { 0, 4000 }
+    ranges["x"] = { 1, 4000 }
+    ranges["m"] = { 1, 4000 }
+    ranges["a"] = { 1, 4000 }
+    ranges["s"] = { 1, 4000 }
 
     return findCombinations(ranges, rules, "in")
 end
 
-print(solve("test_input.txt"))
+print(solve("input.txt"))
