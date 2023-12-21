@@ -19,6 +19,14 @@ end
 
 function Module:__tostring()
     local outputs_str = table.concat(self.outputs, ",")
-    local memory_str = type(self.memory) == "table" and "table" or self.memory
+    local memory_str = ""
+    if type(self.memory) == "table" then
+        for k, v in pairs(self.memory) do
+            memory_str = memory_str .. k .. "=" .. v .. ","
+        end
+    else
+        memory_str = self.memory
+    end
+
     return self.name .. "{type=" .. self.type .. ",outputs=" .. outputs_str .. ",memory=" .. memory_str .. "}"
 end
