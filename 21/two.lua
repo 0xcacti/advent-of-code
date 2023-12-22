@@ -53,25 +53,15 @@ function contains(list, element)
     return false
 end
 
-function solve(path)
-    -- parse input
-    local inputs = getInput(path)
-    printInput(inputs)
-
-    -- get start params
-    local start = findStart(inputs)
-
-    -- add steps to start
-    table.insert(start, 64)
-
+function fill(inputs, startRow, startCol, steps)
     -- create list of visited
     visited = {}
-    visited[start[1] .. "," .. start[2]] = true
+    visited[startRow .. "," .. startCol] = true
 
 
     -- create queue and push start
     queue = Queue.new()
-    queue:pushBack(start)
+    queue:pushBack({ startRow, startCol, steps })
 
     answer = Set.new()
 
@@ -111,6 +101,12 @@ function solve(path)
     end
 
     return count
+end
+
+function solve(path)
+    input = getInput(path)
+    s = findStart(input)
+    return fill(input, s[1], s[2], 64)
 end
 
 print(solve("input.txt"))
