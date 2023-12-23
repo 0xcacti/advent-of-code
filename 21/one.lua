@@ -113,4 +113,5 @@ function solve(path)
     return count
 end
 
-print(solve("input.txt"))
+s = solve("input.txt")
+print(string.format("%.13f", s))

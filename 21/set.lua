@@ -2,33 +2,37 @@ Set = {}
 Set.__index = Set
 
 function Set.new()
-    return setmetatable({}, Set)
+    local s = setmetatable({ _elements = {}, _size = 0 }, Set)
+    return s
 end
 
 function Set:add(element)
-    self[element] = true
+    if not self._elements[element] then
+        self._elements[element] = true
+        self._size = self._size + 1
+    end
 end
 
 function Set:remove(element)
-    self[element] = nil
+    if self._elements[element] then
+        self._elements[element] = nil
+        self._size = self._size - 1
+    end
 end
 
 function Set:contains(element)
-    return self[element] ~= nil
+    return self._elements[element] ~= nil
 end
 
 function Set:size()
-    local count = 0
-    for _ in pairs(self) do
-        count = count + 1
-    end
-    return count
+    return self._size
 end
 
 function Set:elements()
     local elems = {}
-    for k in pairs(self) do
+    for k in pairs(self._elements) do
         table.insert(elems, k)
     end
     return elems
 end
+

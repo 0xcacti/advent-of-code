@@ -55,8 +55,8 @@ end
 
 function fill(inputs, startRow, startCol, steps)
     -- create list of visited
-    visited = {}
-    visited[startRow .. "," .. startCol] = true
+    visited = Set.new()
+    visited:add(startRow .. ";" .. startCol)
 
 
     -- create queue and push start
@@ -71,7 +71,7 @@ function fill(inputs, startRow, startCol, steps)
         row, col, steps = entry[1], entry[2], entry[3]
 
         if steps % 2 == 0 then
-            answer:add(row .. "," .. col)
+            answer:add(row .. ";" .. col)
         end
 
         if steps == 0 then
@@ -83,11 +83,11 @@ function fill(inputs, startRow, startCol, steps)
         for _, step in ipairs(nextSteps) do
             nextRow, nextCol = step[1], step[2]
 
-            key = nextRow .. "," .. nextCol
-            if nextRow < 1 or nextRow > #inputs or nextCol < 1 or nextCol > #inputs[1] or visited[key] or inputs[nextRow][nextCol] == "#" then
+            key = nextRow .. ";" .. nextCol
+            if nextRow < 1 or nextRow > #inputs or nextCol < 1 or nextCol > #inputs[1] or inputs[nextRow][nextCol] == "#" or visited:contains(key) then
                 goto continue
             end
-            visited[key] = true
+            visited:add(key)
 
             queue:pushBack({ nextRow, nextCol, steps - 1 })
             ::continue::
@@ -95,18 +95,54 @@ function fill(inputs, startRow, startCol, steps)
         ::qtinue::
     end
 
-    count = 0
-    for k, v in pairs(answer) do
-        count = count + 1
-    end
 
-    return count
+    return answer:size()
 end
 
 function solve(path)
     input = getInput(path)
     s = findStart(input)
-    return fill(input, s[1], s[2], 64)
+    steps = 26501365
+    gridSize = #input
+    gridWidth = math.floor(steps / gridSize) - 1
+    print(gridWidth)
+
+    odd = math.pow(math.floor(gridWidth / 2) * 2 + 1, 2)
+    even = math.pow(math.floor((gridWidth + 1) / 2) * 2, 2)
+    print(odd .. " " .. even)
+
+    -- Assuming fill is a function that needs to be defined or imported
+    local oddPoints = fill(input, s[1], s[2], gridSize * 2 + 1)
+    local evenPoints = fill(input, s[1], s[2], gridSize * 2)
+    print(gridSize)
+    print(oddPoints .. " " .. evenPoints)
+
+
+    local cornerT = fill(input, gridSize - 1, s[2], gridSize - 1)
+    local cornerR = fill(input, s[1], 1, gridSize - 1)
+    local cornerB = fill(input, 1, s[2], gridSize - 1)
+    local cornerL = fill(input, s[1], gridSize - 1, gridSize - 1)
+    print(gridSize - 1, s[2], gridSize - 1)
+    print(cornerT .. " " .. cornerR .. " " .. cornerB .. " " .. cornerL)
+
+    local halfSize = math.floor(gridSize / 2)
+    local smallTR = fill(input, gridSize - 1, 1, halfSize - 1)
+    local smallTL = fill(input, gridSize - 1, gridSize - 1, halfSize - 1)
+    local smallBR = fill(input, 1, 1, halfSize - 1)
+    local smallBL = fill(input, 1, gridSize - 1, halfSize - 1)
+    print(smallTR .. " " .. smallTL .. " " .. smallBR .. " " .. smallBL)
+
+    local oneAndHalfSize = math.floor(gridSize * 3 / 2)
+    local largeTR = fill(input, gridSize - 1, 1, oneAndHalfSize - 1)
+    local largeTL = fill(input, gridSize - 1, gridSize - 1, oneAndHalfSize - 1)
+    local largeBR = fill(input, 1, 1, oneAndHalfSize - 1)
+    local largeBL = fill(input, 1, gridSize - 1, oneAndHalfSize - 1)
+    print(largeTR .. " " .. largeTL .. " " .. largeBR .. " " .. largeBL)
+
+    return odd * oddPoints + even * evenPoints + cornerT + cornerR + cornerB + cornerL +
+        (gridWidth + 1) * (smallTR + smallTL + smallBR + smallBL) + gridWidth * (largeTR + largeTL + largeBR + largeBL)
 end
 
-print(solve("input.txt"))
+s = solve("input.txt")
+print(tostring(s))
+print(string.format("%.14f", s))
