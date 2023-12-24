@@ -109,17 +109,13 @@ function solve(path)
     steps = 26501365
     gridSize = tableLength(input)
     gridWidth = math.floor(steps / gridSize) - 1
-    print(gridWidth)
 
     odd = math.pow(math.floor(gridWidth / 2) * 2 + 1, 2)
     even = math.pow(math.floor((gridWidth + 1) / 2) * 2, 2)
-    print(odd .. " " .. even)
 
     -- Assuming fill is a function that needs to be defined or imported
     local oddPoints = fill(input, s[1], s[2], gridSize * 2 + 1)
     local evenPoints = fill(input, s[1], s[2], gridSize * 2)
-    print(gridSize)
-    print(oddPoints .. " " .. evenPoints)
 
 
     local cornerT = fill(input, gridSize - 1, s[2], gridSize - 1)
@@ -132,19 +128,16 @@ function solve(path)
     local smallTL = fill(input, gridSize - 1, gridSize - 1, halfSize - 1)
     local smallBR = fill(input, 0, 0, halfSize - 1)
     local smallBL = fill(input, 0, gridSize - 1, halfSize - 1)
-    print(smallTR .. " " .. smallTL .. " " .. smallBR .. " " .. smallBL)
 
     local oneAndHalfSize = math.floor(gridSize * 3 / 2)
     local largeTR = fill(input, gridSize - 1, 0, oneAndHalfSize - 1)
     local largeTL = fill(input, gridSize - 1, gridSize - 1, oneAndHalfSize - 1)
     local largeBR = fill(input, 0, 0, oneAndHalfSize - 1)
     local largeBL = fill(input, 0, gridSize - 1, oneAndHalfSize - 1)
-    print(largeTR .. " " .. largeTL .. " " .. largeBR .. " " .. largeBL)
 
     return odd * oddPoints + even * evenPoints + cornerT + cornerR + cornerB + cornerL +
         (gridWidth + 1) * (smallTR + smallTL + smallBR + smallBL) + gridWidth * (largeTR + largeTL + largeBR + largeBL)
 end
 
 s = solve("input.txt")
-print(tostring(s))
 print(string.format("%.14f", s))
