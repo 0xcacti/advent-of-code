@@ -15,14 +15,26 @@ end
 function getInput(path)
     io.input(path)
     local inp = {}
+    local rowIndex = 0 -- Start from 0 for rows
     for line in io.lines() do
-        row = {}
+        local row = {}
+        local columnIndex = 0 -- Start from 0 for columns
         for c in line:gmatch(".") do
-            table.insert(row, c)
+            row[columnIndex] = c
+            columnIndex = columnIndex + 1
         end
-        table.insert(inp, row)
+        inp[rowIndex] = row
+        rowIndex = rowIndex + 1
     end
     return inp
+end
+
+function tableLength(table)
+    local count = 0
+    for _ in pairs(table) do
+        count = count + 1
+    end
+    return count
 end
 
 function printInput(input)
@@ -35,10 +47,10 @@ function printInput(input)
 end
 
 function findStart(input)
-    for i, row in ipairs(input) do
-        for j, col in ipairs(row) do
-            if col == "S" then
-                return { j, i }
+    for i = 0, tableLength(input) - 1 do
+        for j = 0, tableLength(input[i]) - 1 do
+            if input[i][j] == "S" then
+                return { i, j }
             end
         end
     end
@@ -54,21 +66,17 @@ function contains(list, element)
 end
 
 function fill(inputs, startRow, startCol, steps)
-    -- create list of visited
-    visited = Set.new()
+    local visited = Set.new()
     visited:add(startRow .. ";" .. startCol)
 
-
-    -- create queue and push start
-    queue = Queue.new()
+    local queue = Queue.new()
     queue:pushBack({ startRow, startCol, steps })
 
-    answer = Set.new()
-
+    local answer = Set.new()
 
     while not queue:empty() do
         local entry = queue:popFront()
-        row, col, steps = entry[1], entry[2], entry[3]
+        local row, col, steps = entry[1], entry[2], entry[3]
 
         if steps % 2 == 0 then
             answer:add(row .. ";" .. col)
@@ -78,23 +86,19 @@ function fill(inputs, startRow, startCol, steps)
             goto qtinue
         end
 
-
-        nextSteps = { { row + 1, col }, { row - 1, col }, { row, col + 1 }, { row, col - 1 } }
+        local nextSteps = { { row + 1, col }, { row - 1, col }, { row, col + 1 }, { row, col - 1 } }
         for _, step in ipairs(nextSteps) do
-            nextRow, nextCol = step[1], step[2]
-
-            key = nextRow .. ";" .. nextCol
-            if nextRow < 1 or nextRow > #inputs or nextCol < 1 or nextCol > #inputs[1] or inputs[nextRow][nextCol] == "#" or visited:contains(key) then
+            local nextRow, nextCol = step[1], step[2]
+            local key = nextRow .. ";" .. nextCol
+            if nextRow < 0 or nextRow >= tableLength(inputs) or nextCol < 0 or nextCol >= tableLength(inputs[nextRow]) or inputs[nextRow][nextCol] == "#" or visited:contains(key) then
                 goto continue
             end
             visited:add(key)
-
             queue:pushBack({ nextRow, nextCol, steps - 1 })
             ::continue::
         end
         ::qtinue::
     end
-
 
     return answer:size()
 end
@@ -103,7 +107,7 @@ function solve(path)
     input = getInput(path)
     s = findStart(input)
     steps = 26501365
-    gridSize = #input
+    gridSize = tableLength(input)
     gridWidth = math.floor(steps / gridSize) - 1
     print(gridWidth)
 
@@ -119,24 +123,22 @@ function solve(path)
 
 
     local cornerT = fill(input, gridSize - 1, s[2], gridSize - 1)
-    local cornerR = fill(input, s[1], 1, gridSize - 1)
-    local cornerB = fill(input, 1, s[2], gridSize - 1)
+    local cornerR = fill(input, s[1], 0, gridSize - 1)
+    local cornerB = fill(input, 0, s[2], gridSize - 1)
     local cornerL = fill(input, s[1], gridSize - 1, gridSize - 1)
-    print(gridSize - 1, s[2], gridSize - 1)
-    print(cornerT .. " " .. cornerR .. " " .. cornerB .. " " .. cornerL)
 
     local halfSize = math.floor(gridSize / 2)
-    local smallTR = fill(input, gridSize - 1, 1, halfSize - 1)
+    local smallTR = fill(input, gridSize - 1, 0, halfSize - 1)
     local smallTL = fill(input, gridSize - 1, gridSize - 1, halfSize - 1)
-    local smallBR = fill(input, 1, 1, halfSize - 1)
-    local smallBL = fill(input, 1, gridSize - 1, halfSize - 1)
+    local smallBR = fill(input, 0, 0, halfSize - 1)
+    local smallBL = fill(input, 0, gridSize - 1, halfSize - 1)
     print(smallTR .. " " .. smallTL .. " " .. smallBR .. " " .. smallBL)
 
     local oneAndHalfSize = math.floor(gridSize * 3 / 2)
-    local largeTR = fill(input, gridSize - 1, 1, oneAndHalfSize - 1)
+    local largeTR = fill(input, gridSize - 1, 0, oneAndHalfSize - 1)
     local largeTL = fill(input, gridSize - 1, gridSize - 1, oneAndHalfSize - 1)
-    local largeBR = fill(input, 1, 1, oneAndHalfSize - 1)
-    local largeBL = fill(input, 1, gridSize - 1, oneAndHalfSize - 1)
+    local largeBR = fill(input, 0, 0, oneAndHalfSize - 1)
+    local largeBL = fill(input, 0, gridSize - 1, oneAndHalfSize - 1)
     print(largeTR .. " " .. largeTL .. " " .. largeBR .. " " .. largeBL)
 
     return odd * oddPoints + even * evenPoints + cornerT + cornerR + cornerB + cornerL +
