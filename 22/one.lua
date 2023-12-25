@@ -65,11 +65,11 @@ function drop(bricks)
 end
 
 function getSupports(bricks)
-    key_supports_value = {}
-    value_supports_key = {}
+    ksv = {}
+    vsk = {}
     for i = 1, #bricks do
-        key_supports_value[i] = Set:new()
-        value_supports_key[i] = Set:new()
+        ksv[i] = Set:new()
+        vsk[i] = Set:new()
     end
 
     for j = 1, #bricks do
@@ -77,13 +77,12 @@ function getSupports(bricks)
         for i = 1, j - 1 do
             lower = bricks[i]
             if overlap(upper, lower) and upper[3] == lower[6] + 1 then
-                print("overlap")
-                key_supports_value[i]:add(j)
-                value_supports_key[j]:add(i)
+                ksv[i]:add(j)
+                vsk[j]:add(i)
             end
         end
     end
-    printSupport(key_supports_value)
+    return ksv, vsk
 end
 
 function printSupport(list)
@@ -109,8 +108,25 @@ function solve(path)
     end)
 
 
+
     -- printInput(inputs)
-    getSupports(dropped)
+    ksv, vsk = getSupports(dropped)
+    local total = 0
+
+    for i = 1, #dropped do
+        local all = true
+        for _, j in ipairs(ksv[i]:elements()) do
+            if vsk[j]:size() < 2 then
+                all = false
+                break
+            end
+        end
+        if all then
+            total = total + 1
+        end
+    end
+
+    print(total)
 end
 
 s = solve("test_input.txt")
