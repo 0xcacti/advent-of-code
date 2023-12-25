@@ -131,10 +131,9 @@ function solve(path)
                 graph[sr .. "," .. sc][r .. "," .. c] = n
                 goto continue
             end
-            for _, entry in ipairs(dirs) do
-                dr, dc = parsePair(entry)
-                dr = tonumber(dr)
-                dc = tonumber(dc)
+            for _, entry in ipairs(dirs[inputs[r][c]]) do
+                parsed = parsePair(entry)
+                dr, dc = tonumber(parsed[1]), tonumber(parsed[2])
                 nr = r + dr
                 nc = c + dc
                 if 1 <= nr and nr <= #inputs and 1 <= nc and nc <= #inputs[1] and inputs[nr][nc] ~= "#" and not contains(seen, nr .. "," .. "nc") then
