@@ -65,35 +65,6 @@ function drop(bricks)
 end
 
 function getSupports(bricks)
-    key_supports_value = {}
-    value_supports_key = {}
-    for i = 1, #bricks do
-        key_supports_value[i] = Set:new()
-        value_supports_key[i] = Set:new()
-    end
-
-    for j = 1, #bricks do
-        upper = bricks[j]
-        for i = 1, j - 1 do
-            lower = bricks[i]
-            if overlap(upper, lower) and upper[3] == lower[6] + 1 then
-                print("overlap")
-                key_supports_value[i]:add(j)
-                value_supports_key[j]:add(i)
-            end
-        end
-    end
-    printSupport(key_supports_value)
-end
-
-function printSupport(list)
-    for k, set in pairs(list) do
-        io.write(k .. ": ")
-        for _, value in ipairs(set:elements()) do
-            io.write(value .. " ")
-        end
-        io.write("\n")
-    end
 end
 
 function solve(path)
@@ -109,8 +80,7 @@ function solve(path)
     end)
 
 
-    -- printInput(inputs)
-    getSupports(dropped)
+    printInput(inputs)
 end
 
 s = solve("test_input.txt")
