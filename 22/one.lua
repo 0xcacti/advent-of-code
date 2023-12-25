@@ -13,11 +13,13 @@ function getInput(path)
     io.input(path)
     local inp = {}
     for line in io.lines() do
-        row = {}
-        for c in line:gmatch(".") do
-            table.insert(row, c)
+        line = string.gsub(line, "~", ",")
+        parts = mysplit(line, ",")
+        numericParts = {}
+        for _, part in ipairs(parts) do
+            table.insert(numericParts, tonumber(part))
         end
-        table.insert(inp, row)
+        table.insert(inp, numericParts)
     end
     return inp
 end
@@ -43,8 +45,11 @@ end
 function solve(path)
     -- parse input
     local inputs = getInput(path)
+    table.sort(inputs, function(a, b)
+        return a[3] < b[3]
+    end)
+
     printInput(inputs)
 end
 
-s = solve("test_input.txt")
-print(string.format("%.13f", s))
+s = solve("input.txt")
