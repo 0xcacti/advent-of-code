@@ -1,4 +1,5 @@
 require("set")
+require("deque")
 function mysplit(inputstr, sep)
     if sep == nil then
         sep = "%s"
@@ -95,6 +96,25 @@ function printSupport(list)
     end
 end
 
+function setSubtraction(elements, subtractSet)
+    local result = {}
+    for _, element in ipairs(elements) do
+        if not subtractSet:contains(element) then
+            table.insert(result, element)
+        end
+    end
+    return result
+end
+
+function isSubset(setA, setB)
+    for element in pairs(setA._elements) do
+        if not setB:contains(element) then
+            return false
+        end
+    end
+    return true
+end
+
 function solve(path)
     -- parse input
     local inputs = getInput(path)
@@ -114,17 +134,34 @@ function solve(path)
     local total = 0
 
     for i = 1, #dropped do
-        local all = true
+        q = Deque:new()
         for _, j in ipairs(ksv[i]:elements()) do
-            if vsk[j]:size() < 2 then
-                all = false
-                break
+            if vsk[j]:size() == 1 then
+                q:pushBack(j)
             end
         end
-        if all then
-            total = total + 1
+        falling = Set.new()
+        local index = q._first
+        while index <= q._last do
+            falling:add(q[index])
+            index = index + 1
         end
+
+        falling:add(i)
+
+        while not q:empty() do
+            j = q:popFront()
+            elements = setSubtraction(ksv[j]:elements(), falling)
+            for _, elem in ipairs(elements) do
+                if isSubset(vsk[elem], falling) then
+                    q:pushBack(elem)
+                    falling:add(elem)
+                end
+            end
+        end
+        total = total + falling:size() - 1
     end
+
 
     print(total)
 end
