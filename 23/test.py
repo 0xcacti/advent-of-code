@@ -1,4 +1,4 @@
-grid = open("test_input.txt").read().splitlines()
+grid = open("input.txt").read().splitlines()
 
 start = (0, grid[0].index("."))
 end = (len(grid) - 1, grid[-1].index("."))
@@ -19,10 +19,10 @@ for r, row in enumerate(grid):
 graph = {pt: {} for pt in points}
 
 dirs = {
-    "^": [(-1, 0)],
-    "v": [(1, 0)],
-    "<": [(0, -1)],
-    ">": [(0, 1)],
+    "^": [(-1, 0), (1, 0), (0, -1), (0, 1)],
+    "v": [(-1, 0), (1, 0), (0, -1), (0, 1)],
+    "<": [(-1, 0), (1, 0), (0, -1), (0, 1)],
+    ">": [(-1, 0), (1, 0), (0, -1), (0, 1)],
     ".": [(-1, 0), (1, 0), (0, -1), (0, 1)],
 }
 

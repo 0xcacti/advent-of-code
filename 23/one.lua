@@ -203,5 +203,5 @@ function solve(path)
     return dfs(graph, Set.new(), start[1] .. "," .. start[2], stop[1] .. "," .. stop[2])
 end
 
-s = solve("test_input.txt")
+s = solve("input.txt")
 print(s)
