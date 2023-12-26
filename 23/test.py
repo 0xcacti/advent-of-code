@@ -29,6 +29,7 @@ dirs = {
 for sr, sc in points:
     stack = [(0, sr, sc)]
     seen = {(sr, sc)}
+    print(seen)
 
     while stack:
         n, r, c = stack.pop()
@@ -54,6 +55,7 @@ def dfs(pt):
 
     seen.add(pt)
     for nx in graph[pt]:
+        print(nx)
         if nx not in seen:
             m = max(m, dfs(nx) + graph[pt][nx])
     seen.remove(pt)

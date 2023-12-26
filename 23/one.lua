@@ -1,4 +1,3 @@
---
 function mysplit(inputstr, sep)
     if sep == nil then
         sep = "%s"
@@ -62,17 +61,26 @@ function contains(t, e)
 end
 
 function dfs(graph, seen, pt, stop)
+    print(type(pt))
+    print(type(stop))
     if pt == stop then
         return 0
     end
     m = -math.huge
     table.insert(seen, pt)
-    for _, nx in ipairs(graph[pt]) do
-        if not contains(seen, nx) then
-            m = math.max(m, dfs(graph, seen, nx, stop) + graph[pt][nx])
+    for key, nx in pairs(graph[pt]) do
+        if not contains(seen, key) then
+            m = math.max(m, dfs(graph, seen, key, stop) + graph[pt][key])
         end
     end
     return m
+end
+
+function printStackEntry(entry)
+    for _, v in ipairs(entry) do
+        io.write(v .. " ")
+    end
+    io.write("\n")
 end
 
 function solve(path)
@@ -124,9 +132,12 @@ function solve(path)
         stackStart = { 0, sr, sc }
         stack = { stackStart }
         seen = { p }
+        print(seen[1])
+
 
         while #stack > 0 do
             entry = table.remove(stack)
+            -- printStackEntry(entry)
             n, r, c = tonumber(entry[1]), tonumber(entry[2]), tonumber(entry[3])
             if n ~= 0 and contains(points, r .. "," .. c) then
                 graph[sr .. "," .. sc][r .. "," .. c] = n
@@ -137,7 +148,7 @@ function solve(path)
                 dr, dc = tonumber(parsed[1]), tonumber(parsed[2])
                 nr = r + dr
                 nc = c + dc
-                if 1 <= nr and nr <= #inputs and 1 <= nc and nc <= #inputs[1] and inputs[nr][nc] ~= "#" and not contains(seen, nr .. "," .. "nc") then
+                if 1 <= nr and nr <= #inputs and 1 <= nc and nc <= #inputs[1] and inputs[nr][nc] ~= "#" and not contains(seen, nr .. "," .. nc) then
                     table.insert(stack, { n + 1, nr, nc })
                     table.insert(seen, nr .. "," .. nc)
                 end
@@ -148,5 +159,5 @@ function solve(path)
     return dfs(graph, {}, start[1] .. "," .. start[2], stop[1] .. "," .. stop[2])
 end
 
-s = solve("input.txt")
+s = solve("test_input.txt")
 print(s)
