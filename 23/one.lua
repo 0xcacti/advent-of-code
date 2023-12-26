@@ -1,3 +1,4 @@
+--
 function mysplit(inputstr, sep)
     if sep == nil then
         sep = "%s"
