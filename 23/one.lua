@@ -1,3 +1,5 @@
+require("set")
+
 function mysplit(inputstr, sep)
     if sep == nil then
         sep = "%s"
@@ -60,19 +62,48 @@ function contains(t, e)
     return false
 end
 
+-- function dfs(graph, seen, pt, stop)
+--     if pt == stop then
+--         return 0
+--     end
+--     m = -math.huge
+--     -- table.insert(seen, pt)
+--     seen:add(pt)
+--     for key, _ in pairs(graph[pt]) do
+--         convertAndPrint(key)
+--         -- if not contains(seen, key) then
+--         if not seen:contains(key) then
+--             m = math.max(m, dfs(graph, seen, key, stop) + graph[pt][key])
+--         end
+--     end
+--     return m
+-- end
+--
 function dfs(graph, seen, pt, stop)
-    print(type(pt))
-    print(type(stop))
     if pt == stop then
         return 0
     end
-    m = -math.huge
-    table.insert(seen, pt)
-    for key, nx in pairs(graph[pt]) do
-        if not contains(seen, key) then
-            m = math.max(m, dfs(graph, seen, key, stop) + graph[pt][key])
-        end
+    if contains(seen, pt) then
+        return -math.huge -- Or some indication that this path is not viable
     end
+
+    local m = -math.huge
+    table.insert(seen, pt)
+
+    local keys = {}
+    for key, _ in pairs(graph[pt]) do
+        table.insert(keys, key)
+    end
+    table.sort(keys)
+
+    for _, key in ipairs(keys) do
+        convertAndPrint(key)
+        m = math.max(m, dfs(graph, seen, key, stop) + graph[pt][key])
+    end
+
+    -- Remove the current point from seen to allow revisiting in different paths
+    table.remove(seen, #seen)
+
     return m
 end
 
@@ -81,6 +112,12 @@ function printStackEntry(entry)
         io.write(v .. " ")
     end
     io.write("\n")
+end
+
+function convertAndPrint(t)
+    parts = mysplit(t, ",")
+    i, j = tonumber(parts[1]), tonumber(parts[2])
+    io.write("(" .. i - 1 .. "," .. j - 1 .. ")" .. "\n")
 end
 
 function solve(path)
@@ -132,7 +169,6 @@ function solve(path)
         stackStart = { 0, sr, sc }
         stack = { stackStart }
         seen = { p }
-        print(seen[1])
 
 
         while #stack > 0 do
@@ -149,6 +185,7 @@ function solve(path)
                 nr = r + dr
                 nc = c + dc
                 if 1 <= nr and nr <= #inputs and 1 <= nc and nc <= #inputs[1] and inputs[nr][nc] ~= "#" and not contains(seen, nr .. "," .. nc) then
+                    convertAndPrint(nr .. "," .. nc)
                     table.insert(stack, { n + 1, nr, nc })
                     table.insert(seen, nr .. "," .. nc)
                 end
@@ -156,7 +193,14 @@ function solve(path)
             ::continue::
         end
     end
-    return dfs(graph, {}, start[1] .. "," .. start[2], stop[1] .. "," .. stop[2])
+    print("=============")
+    print(start[1] .. "," .. start[2])
+    print(stop[1] .. "," .. stop[2])
+    for _, p in ipairs(seen) do
+        convertAndPrint(p)
+    end
+    print("=============")
+    return dfs(graph, Set.new(), start[1] .. "," .. start[2], stop[1] .. "," .. stop[2])
 end
 
 s = solve("test_input.txt")

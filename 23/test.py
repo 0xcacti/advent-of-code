@@ -29,7 +29,6 @@ dirs = {
 for sr, sc in points:
     stack = [(0, sr, sc)]
     seen = {(sr, sc)}
-    print(seen)
 
     while stack:
         n, r, c = stack.pop()
@@ -42,6 +41,7 @@ for sr, sc in points:
             nr = r + dr
             nc = c + dc
             if 0 <= nr < len(grid) and 0 <= nc < len(grid[0]) and grid[nr][nc] != "#" and (nr, nc) not in seen:
+                print((nr, nc))
                 stack.append((n + 1, nr, nc))
                 seen.add((nr, nc))
 
@@ -62,4 +62,10 @@ def dfs(pt):
 
     return m
 
+print("=========")
+print(start)
+print(end)
+for pt in seen:
+    print(pt)
+print("=========")
 print(dfs(start))
