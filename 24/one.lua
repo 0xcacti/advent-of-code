@@ -1,3 +1,5 @@
+require("hailstone")
+
 function mysplit(inputstr, sep)
     if sep == nil then
         sep = "%s"
@@ -13,21 +15,28 @@ function getInput(path)
     io.input(path)
     local inp = {}
     for line in io.lines() do
-        row = {}
-        for c in line:gmatch(".") do
-            table.insert(row, c)
+        line = string.gsub(line, "@", ",")
+        parts = mysplit(line, ",")
+        numericParts = {}
+        for _, part in ipairs(parts) do
+            if part == nil then
+                print("fuck")
+                break
+            end
+
+            table.insert(numericParts, tonumber(part))
         end
-        table.insert(inp, row)
+        hail = Hailstone.new(table.unpack(numericParts))
+        if hail ~= nil then
+            table.insert(inp, hail)
+        end
     end
     return inp
 end
 
 function printInput(input)
-    for i, row in ipairs(input) do
-        for j, col in ipairs(row) do
-            io.write(col .. " ")
-        end
-        io.write("\n")
+    for i, hailstone in ipairs(input) do
+        print(hailstone)
     end
 end
 
@@ -41,7 +50,22 @@ function contains(t, e)
 end
 
 function solve(path)
-    local inputs = getInput(path)
+    local hailstones = getInput(path)
+    printInput(hailstones)
+    print(#hailstones)
+    for i = 1, #hailstones do
+        for j = i + 1, #hailstones do
+            hail = hailstones[i]
+            stone = hailstones[j]
+            a1, b1, c1 = hail.a, hail.b, hail.c
+            a2, b2, c2 = stone.a, stone.b, stone.c
+            if a1 * b2 == b1 * a2 then
+                goto continue
+            end
+
+            ::continue::
+        end
+    end
 end
 
 s = solve("test_input.txt")
