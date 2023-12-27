@@ -16,14 +16,9 @@ function getInput(path)
     local inp = {}
     for line in io.lines() do
         line = string.gsub(line, "@", ",")
-        parts = mysplit(line, ",")
-        numericParts = {}
+        local parts = mysplit(line, ",")
+        local numericParts = {}
         for _, part in ipairs(parts) do
-            if part == nil then
-                print("fuck")
-                break
-            end
-
             table.insert(numericParts, tonumber(part))
         end
         hail = Hailstone.new(table.unpack(numericParts))
@@ -52,21 +47,29 @@ end
 function solve(path)
     local hailstones = getInput(path)
     printInput(hailstones)
-    print(#hailstones)
+    local total = 0
     for i = 1, #hailstones do
-        for j = i + 1, #hailstones do
-            hail = hailstones[i]
-            stone = hailstones[j]
-            a1, b1, c1 = hail.a, hail.b, hail.c
-            a2, b2, c2 = stone.a, stone.b, stone.c
+        for j = 1, i - 1 do
+            local hail = hailstones[i]
+            local stone = hailstones[j]
+            local a1, b1, c1 = hail.a, hail.b, hail.c
+            local a2, b2, c2 = stone.a, stone.b, stone.c
             if a1 * b2 == b1 * a2 then
                 goto continue
             end
+            local x = (c1 * b2 - c2 * b1) / (a1 * b2 - a2 * b1)
+            local y = (c2 * a1 - c1 * a2) / (a1 * b2 - a2 * b1)
 
+            if 200000000000000 <= x and x <= 400000000000000 and 200000000000000 <= y and y <= 400000000000000 then
+                if (x - hail.sx) * hail.vx >= 0 and (y - hail.sy) * hail.vy >= 0 and (x - stone.sx) * stone.vx >= 0 and (y - stone.sy) * stone.vy >= 0 then
+                    total = total + 1
+                end
+            end
             ::continue::
         end
     end
+    return total
 end
 
-s = solve("test_input.txt")
+s = solve("input.txt")
 print(s)
