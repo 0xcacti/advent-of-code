@@ -45,34 +45,46 @@ function contains(t, e)
     return false
 end
 
+local function intersect(h1, h2)
+    local m1 = h1.vy / h1.vx
+    local m2 = h2.vy / h2.vx
+    local x = (m1 * h1.sx - h1.sy - m2 * h2.sx + h2.sy) / (m1 - m2)
+    if x == x and x ~= math.huge and x ~= -1 * math.huge then
+        return x, m1 * (x - h1.sx) + h1.sy
+    end
+end
+
+local function same_dir(v1, v2)
+    return v1[1] * v2[1] >= 0 and v1[2] * v2[2] >= 0
+end
 function solve(path)
     local hailstones = getInput(path)
     local total = 0
+    local min, max = 200000000000000, 400000000000000
     for i = 1, #hailstones do
         for j = 1, i - 1 do
             local hail = hailstones[i]
             local stone = hailstones[j]
-            print(hail)
-            print(stone)
-            local a1, b1, c1 = hail.a, hail.b, hail.c
-            local a2, b2, c2 = stone.a, stone.b, stone.c
-            if a1 * b2 == b1 * a2 then
-                goto continue
-            end
-            local x = (c1 * b2 - c2 * b1) / (a1 * b2 - a2 * b1)
-            local y = (c2 * a1 - c1 * a2) / (a1 * b2 - a2 * b1)
+            local x, y = intersect(hail, stone)
 
-
-            if 200000000000000 <= x and x <= 400000000000000 and 200000000000000 <= y and y <= 400000000000000 then
-                -- if 7 <= x and x <= 27 and 7 <= y and y <= 27 then
-                if (x - hail.sx) * hail.vx >= 0 and (y - hail.sy) * hail.vy >= 0 and (x - stone.sx) * stone.vx >= 0 and (y - stone.sy) * stone.vy >= 0 then
+            if x then
+                local dx, dy = x - hail.sx, y - hail.sy
+                local dx2, dy2 = x - stone.sx, y - stone.sy
+                if
+                    same_dir({ hail.vx, hail.vy }, { dx, dy })
+                    and same_dir({ stone.vx, stone.vy }, { dx2, dy2 })
+                    and x >= min
+                    and x <= max
+                    and y >= min
+                    and y <= max
+                then
                     total = total + 1
                 end
             end
-            ::continue::
         end
     end
     return total
 end
 
 s = solve("input.txt")
+print(s)
