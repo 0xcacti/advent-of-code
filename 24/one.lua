@@ -1,5 +1,6 @@
 require("hailstone")
 
+
 function mysplit(inputstr, sep)
     if sep == nil then
         sep = "%s"
@@ -46,12 +47,13 @@ end
 
 function solve(path)
     local hailstones = getInput(path)
-    printInput(hailstones)
     local total = 0
     for i = 1, #hailstones do
         for j = 1, i - 1 do
             local hail = hailstones[i]
             local stone = hailstones[j]
+            print(hail)
+            print(stone)
             local a1, b1, c1 = hail.a, hail.b, hail.c
             local a2, b2, c2 = stone.a, stone.b, stone.c
             if a1 * b2 == b1 * a2 then
@@ -60,7 +62,9 @@ function solve(path)
             local x = (c1 * b2 - c2 * b1) / (a1 * b2 - a2 * b1)
             local y = (c2 * a1 - c1 * a2) / (a1 * b2 - a2 * b1)
 
+
             if 200000000000000 <= x and x <= 400000000000000 and 200000000000000 <= y and y <= 400000000000000 then
+                -- if 7 <= x and x <= 27 and 7 <= y and y <= 27 then
                 if (x - hail.sx) * hail.vx >= 0 and (y - hail.sy) * hail.vy >= 0 and (x - stone.sx) * stone.vx >= 0 and (y - stone.sy) * stone.vy >= 0 then
                     total = total + 1
                 end
@@ -72,4 +76,3 @@ function solve(path)
 end
 
 s = solve("input.txt")
-print(s)
