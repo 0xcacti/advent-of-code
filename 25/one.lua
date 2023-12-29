@@ -32,6 +32,7 @@ function generateGraph(path, cuts)
             end)
 
             if not cuts[start .. ":" .. v] and not cuts[v .. ":" .. start] then
+                print(start .. ":" .. v)
                 f:write(string.format("\t%s -- %s;\n", start, v))
                 graph[v] = graph[v] or {}
                 graph[start][v] = true
@@ -58,15 +59,50 @@ function printInput(input)
     end
 end
 
+local function dfs(graph, n, visited)
+    if not visited[n] then
+        visited[n] = true
+        local v = 1
+        for child in pairs(graph[n]) do
+            v = v + (dfs(graph, child, visited) or 0)
+        end
+        return v
+    end
+end
+
 function solve(path)
     local cuts = {
-        ["bvb:cmg"] = true,
-        ["hfx:pzl"] = true,
-        ["jqt:nvd"] = true,
+        ["pgl:mtl"] = true,
+        ["lkf:scf"] = true,
+        ["zxb:zkv"] = true,
     }
 
     local graph, nodes = generateGraph(path, cuts)
+    local queue = {}
+    for k, _ in pairs(nodes) do
+        table.insert(queue, k)
+    end
+    table.sort(queue, function(a, b)
+        return a < b
+    end)
+
+    local visited = {}
+    local subgraphs = {}
+
+    while #queue > 0 do
+        local current = table.remove(queue, 1)
+        if visited[current] then
+            goto continue
+        end
+        table.insert(subgraphs, dfs(graph, current, visited))
+        visited[current] = true
+        ::continue::
+    end
+    if #subgraphs == 1 then
+        return 0
+    end
+    return subgraphs[1] * subgraphs[2]
 end
 
-s = solve("test_input.txt")
+s = solve("input.txt")
 print(s)
