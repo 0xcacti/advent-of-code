@@ -123,3 +123,41 @@
     (score (first first-solve-data) (second first-solve-data))))
 
 (solve-one)
+
+
+(defun non-win-indexes ()
+  (let ((non-win-boards (make-array 0 :fill-pointer 0 :adjustable t)))
+    (loop for i from 0 to (- (length *inp-boards*) 1)
+          when (not (check-for-win i))
+          do (vector-push-extend i non-win-boards))
+    non-win-boards))
+
+
+
+(defun find-last-solve ()
+  (loop for i from 0 to (- (length *inp-nums*) 1) do
+        (let ((num (aref *inp-nums* i)))
+          (mark-all-boards num)
+          (let ((remaining-non-wins (non-win-indexes)))
+            (format t "Step: ~d, Num: ~d, Remaining Non-Wins: ~a~%" i num remaining-non-wins)
+            (when (= 1 (length remaining-non-wins))
+              ;; We continue until the last board wins, so after this, we need to mark until this last board wins.
+              (let ((last-non-winner (aref remaining-non-wins 0)))
+                (when (null last-non-winner)
+                  (error "Error: Last non-winner is NIL. Remaining non-wins: ~a" remaining-non-wins))
+                (loop for j from i to (- (length *inp-nums*) 1) do
+                      (let ((next-num (aref *inp-nums* j)))
+                        (mark-board next-num last-non-winner)
+                        (when (check-for-win last-non-winner)
+                          (return-from find-last-solve (list last-non-winner next-num)))))))))))
+
+
+(defun solve-two ()
+  "solve part 2 day 4"
+  (let ((last-winner (find-last-solve)))
+    (format t "Last solve data: ~a~%" last-winner)
+    (score (first last-winner) (second last-winner))))
+
+*check-boards*
+
+(solve-two)
