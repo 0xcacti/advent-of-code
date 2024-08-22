@@ -3,9 +3,11 @@
 
 (defparameter *inp-nums* (make-array 0 :fill-pointer 0 :adjustable t))
 (defparameter *inp-boards* (make-array 0 :fill-pointer 0 :adjustable t))
+(defparameter *check-boards* (make-array 0 :fill-pointer 0 :adjustable t))
 
 *inp-nums*
 *inp-boards*
+*check-boards*
 
 (with-open-file (stream "~/code/challenges/aoc/2021/lisp/4/test-input.txt" :direction :input)
   (let ((data-str (with-output-to-string (out)
@@ -34,6 +36,90 @@
                           (loop for num in numbers
                                 for col from 0 do
                                 (setf (aref board row col) num))))
-                  (vector-push-extend board *inp-boards*)))
+                  (vector-push-extend board *inp-boards*)
+                  (vector-push-extend (make-array '(5 5) :initial-element 0) *check-boards*)))
             (incf i)))))
 
+
+
+;; loop through each number marking them off on each board
+
+
+*inp-nums*
+*inp-boards*
+*check-boards*
+
+
+(defun mark-board (num board-index)
+  (let ((board (aref *inp-boards* board-index)))
+  (loop for row from 0 to 4 do 
+        (loop for col from 0 to 4 do 
+              (if (= num (aref board row col))
+                  (setf (aref (aref *check-boards* board-index) row col) 1))))))
+
+(defun mark-all-boards (num)
+  (loop for i from 0 to (- (length *inp-boards*) 1) do
+        (mark-board num i)))
+
+
+(defun check-column (board-index)
+  (let ((board (aref *check-boards* board-index)))
+    (loop for col from 0 to 4 do 
+          (let ((nums (loop for row from 0 to 4 collect (aref board row col))))
+            (if (every #'identity nums)
+                (return-from check-column t))))))
+
+
+(defun check-diagonal-down (board-index)
+  (let ((board (aref *check-boards* board-index)))
+    (let ((nums (loop for i from 0 to 4 collect (aref board i i))))
+      (if (every #'identity nums)
+          (return-from check-diagonal-down t)))))
+
+(defun check-diagonal-up (board-index)
+  (let ((board (aref *check-boards* board-index)))
+    (let ((nums (loop for i from 0 to 4 collect (aref board (- 4 i) i))))
+      (if (every #'identity nums)
+          (return-from check-diagonal-up t)))))
+
+(defun check-horizontal (board-index)
+  (let ((board (aref *check-boards* board-index)))
+    (loop for row from 0 to 4 do 
+          (let ((nums (loop for col from 0 to 4 collect (aref board row col))))
+            (if (every #'identity nums)
+                (return-from check-horizontal t))))))
+
+(defun check-for-win (board-index)
+  (or (check-column board-index)
+      (check-diagonal-down board-index)
+      (check-diagonal-up board-index)
+      (check-horizontal board-index)))
+
+
+(defun find-first-solve () 
+  (loop for i from 0 to (- (length *inp-nums*) 1) do
+        (let ((num (aref *inp-nums* i)))
+          (mark-all-boards num)
+          (loop for j from 0 to (- (length *inp-boards*) 1) do 
+                (when (check-for-win j)
+                  (return-from find-first-solve (list j num)))))))
+
+
+(defun score (board-index last-num)
+  (let ((board (aref *inp-boards* board-index))
+       (check-board (aref *check-boards* board-index))
+       (score-sum 0))
+    (loop for row from 0 to 4 do 
+          (loop for col from 0 to 4 do 
+                (if (= (aref check-board row col) 0)
+                    (incf score-sum (aref board row col)))))
+    (* score-sum last-num)))
+
+
+(defun solve-one () 
+  "solve part 1 day 4"
+  (let ((first-solve-data (find-first-solve)))
+    (format t "First solve data: ~a~%" first-solve-data)
+    (score (first first-solve-data) (second first-solve-data))))
+
+(solve-one)
