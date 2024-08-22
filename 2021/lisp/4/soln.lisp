@@ -9,7 +9,7 @@
 *inp-boards*
 *check-boards*
 
-(with-open-file (stream "~/code/challenges/aoc/2021/lisp/4/test-input.txt" :direction :input)
+(with-open-file (stream "~/code/challenges/aoc/2021/lisp/4/input.txt" :direction :input)
   (let ((data-str (with-output-to-string (out)
                     (loop for line = (read-line stream nil)
                           while line do
@@ -66,33 +66,32 @@
   (let ((board (aref *check-boards* board-index)))
     (loop for col from 0 to 4 do 
           (let ((nums (loop for row from 0 to 4 collect (aref board row col))))
-            (if (every #'identity nums)
+            (if (every (lambda (x) (= x 1)) nums)
                 (return-from check-column t))))))
 
 
-(defun check-diagonal-down (board-index)
-  (let ((board (aref *check-boards* board-index)))
-    (let ((nums (loop for i from 0 to 4 collect (aref board i i))))
-      (if (every #'identity nums)
-          (return-from check-diagonal-down t)))))
+;; (defun check-diagonal-down (board-index)
+;;   (let ((board (aref *check-boards* board-index)))
+;;     (let ((nums (loop for i from 0 to 4 collect (aref board i i))))
+;;       (if (every (lambda (x) (= x 1)) nums)
+;;           (return-from check-diagonal-down t)))))
+;; 
+;; (defun check-diagonal-up (board-index)
+;;   (let ((board (aref *check-boards* board-index)))
+;;     (let ((nums (loop for i from 0 to 4 collect (aref board (- 4 i) i))))
+;;       (if (every (lambda (x) (= x 1)) nums)
+;;           (return-from check-diagonal-up t)))))
 
-(defun check-diagonal-up (board-index)
-  (let ((board (aref *check-boards* board-index)))
-    (let ((nums (loop for i from 0 to 4 collect (aref board (- 4 i) i))))
-      (if (every #'identity nums)
-          (return-from check-diagonal-up t)))))
 
 (defun check-horizontal (board-index)
   (let ((board (aref *check-boards* board-index)))
     (loop for row from 0 to 4 do 
           (let ((nums (loop for col from 0 to 4 collect (aref board row col))))
-            (if (every #'identity nums)
+            (if (every (lambda (x) (= x 1)) nums)
                 (return-from check-horizontal t))))))
 
 (defun check-for-win (board-index)
   (or (check-column board-index)
-      (check-diagonal-down board-index)
-      (check-diagonal-up board-index)
       (check-horizontal board-index)))
 
 
@@ -103,6 +102,7 @@
           (loop for j from 0 to (- (length *inp-boards*) 1) do 
                 (when (check-for-win j)
                   (return-from find-first-solve (list j num)))))))
+*check-boards*
 
 
 (defun score (board-index last-num)
