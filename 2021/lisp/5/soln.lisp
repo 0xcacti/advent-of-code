@@ -17,6 +17,8 @@
                   (pair1 (mapcar #'parse-integer (cl-ppcre:split "," (first coordinates))))
                   (pair2 (mapcar #'parse-integer (cl-ppcre:split "," (second coordinates)))))
                   (push (list pair1 pair2) *pairs*))))))
+
+*board*
       
 (defun populate-board ()
   (loop for pair in *pairs* do 
@@ -59,12 +61,13 @@
 
 (defun solve-one () 
   "solve part one day 5"
+  (populate-board)
   (count-twos))
 
-(populate-board)
-(count-twos)
+(solve-one)
 
-*pairs* 
-*board*
+
+(defun solve-two () 
+  "sole part two day 5")
 
 
