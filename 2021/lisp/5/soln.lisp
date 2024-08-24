@@ -5,19 +5,6 @@
 (defparameter *pairs* '())
 
 
-(with-open-file (stream "~/code/challenges/aoc/2021/lisp/5/test-input.txt" :direction :input)
-  (let ((data-str (with-output-to-string (out)
-                    (loop for line = (read-line stream nil)
-                          while line do
-                          (princ line out)
-                          (terpri out)))))
-    (let ((parts (cl-ppcre:split "\\n+" data-str)))
-      (loop for part in parts do 
-            (let* ((coordinates (cl-ppcre:split " -> " part))
-                  (pair1 (mapcar #'parse-integer (cl-ppcre:split "," (first coordinates))))
-                  (pair2 (mapcar #'parse-integer (cl-ppcre:split "," (second coordinates)))))
-                  (push (list pair1 pair2) *pairs*))))))
-      
 (with-open-file (stream "~/code/challenges/aoc/2021/lisp/5/input.txt" :direction :input)
   (let ((data-str (with-output-to-string (out)
                     (loop for line = (read-line stream nil)
@@ -30,7 +17,7 @@
                   (pair1 (mapcar #'parse-integer (cl-ppcre:split "," (first coordinates))))
                   (pair2 (mapcar #'parse-integer (cl-ppcre:split "," (second coordinates)))))
                   (push (list pair1 pair2) *pairs*))))))
-
+      
 (defun populate-board ()
   (loop for pair in *pairs* do 
         (let* ((pair1 (first pair))
@@ -59,6 +46,7 @@
             ;;          repeat (1+ (abs (- x1 x2))) do
             ;;          (setf (aref *board* y x) 1)))))))
 
+*pairs*
 *test-board*
 *board*
 
