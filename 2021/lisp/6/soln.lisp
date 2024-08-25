@@ -29,9 +29,32 @@
   "Solve part one day six"
   (let ((input nil) (is-test nil))
     (setf input (read-input is-test input))
-    (loop for i from 0 to 255 do 
+    (loop for i from 0 to 79 do 
           (format t "i: ~a~%" i)
           (setf input (map-day input)))
     (format t "sum: ~a~%" (count-elements input))))
 
 (solve-one)
+
+(defun populate-counter (input counter)
+  (loop for i in input do 
+        (incf (elt counter i))) counter)
+
+(defun simulate-days (counter days)
+  (dotimes (j days)
+    (let ((new-fish (elt counter 0)))
+      (loop for i from 0 below 8 do 
+            (setf (elt counter i) (elt counter (+ i 1))))
+      (incf (elt counter 6) new-fish)
+      (setf (elt counter 8) new-fish)))
+  counter)
+
+(defun solve-two () 
+  "Solve part two day six"
+  (let ((input nil) (is-test nil) (counter (make-array '(9) :initial-element 0)))
+    (setf input (read-input is-test input))
+    (setf counter (populate-counter input counter))
+    (setf counter (simulate-days counter 256))
+    (format t "counter: ~a~%" (reduce #'+ counter))))
+
+(solve-two)
