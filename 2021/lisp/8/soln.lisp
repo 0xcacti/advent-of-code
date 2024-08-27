@@ -60,7 +60,7 @@
 
 (defun deduce (digits)
   "takes a list of strings"
-  (let ((len2 "") (len3 "") (len5 "") (len7 "") (len5 nil) (len6 nil) (digit-values (make-array 10 :initial-element "")))
+  (let ((len2 "") (len3 "") (len5 "") (len7 "") (len5 nil) (len6 nil) (digit-values (make-hash-table 10 :initial-element "")))
     (loop for d in digits do 
       (cond 
         ((= (length d) 2) (setf len2 (normalize d)))
@@ -70,15 +70,16 @@
         ((= (length d) 5) (push (normalize d) len5))
         (t (push (normalize d) len6))))
 
-    (setf (elt digit-values 0) "")
-    (setf (elt digit-values 1) len2)
-    (setf (elt digit-values 3) "")
-    (setf (elt digit-values 4) "")
-    (setf (elt digit-values 5) len4)
-    (setf (elt digit-values 6) "")
-    (setf (elt digit-values 7) len5)
-    (setf (elt digit-values 8) len7)
-    (setf (elt digit-values 9) "")
+    (setf (gethash "" digit-values) 0)
+    (setf (gethash len2 digit-values) 1)
+    (setf (gethash "" digit-values) 2)
+    (setf (gethash "" digit-values) 3)
+    (setf (gethash len4 digit-values) 4)
+    (setf (gethash "" digit-values) 5)
+    (setf (gethash "" digit-values) 6)
+    (setf (gethash len3 digit-values) 7)
+    (setf (gethash len7 digit-values) 8)
+    (setf (gethash "" digit-values) 9)
 
     ))
 
