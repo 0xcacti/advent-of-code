@@ -32,6 +32,16 @@
             (incf c)))))
     (format t "c: ~a~%" c)))
 
-;; acedgfb cdfbe gcdfa fbcad dab cefabd cdfgeb eafb cagedb ab 
+;; caefbdg :: 8
+;; bfdg :: 
+;; ac :: 1
+
+;; 
+;; len(3) = 7
+;; len(2) = 1
+
+;; aedcg db ecbdgf badfegc abfcde edb cbgfe bfdg bdgec agfbce | ecagd gcbde dbcefa bgfd
+;; bgeadf egcbda cfebg ac caefbdg bacd ecfgad cabeg gca abgde | gcbef befcg ac ac
+
 
 (solve-one)
