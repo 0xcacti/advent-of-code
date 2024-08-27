@@ -17,14 +17,21 @@
 
 (defun solve-one () 
   "Solve part one day eight"
-  (let ((is-test t) (input nil) (signal-patterns nil) (output nil))
+  (let ((is-test nil) (input nil) (signal-patterns nil) (output nil) (c 0))
     (setf input (read-input is-test))
     (format t "input: ~a~%" input)
-    (setf signal-patterns (first (first input)))
-    (setf output (first (second input)))
+    (setf signal-patterns (first input))
+    (setf output (second input))
     (format t "signal-patterns: ~a~%" signal-patterns)
-    (format t "output: ~a~%" output)))
+    (format t "output: ~a~%" output)
+    (loop for out in output do 
+          (loop for o in out do 
+        (format t "out: ~a~%" out)
+        (let ((l (length o)))
+          (when (or (= l 2) (= l 3) (= l 4) (= l 7))
+            (incf c)))))
+    (format t "c: ~a~%" c)))
 
-;; acedgfb cdfbe gcdfa fbcad dab cefabd cdfgeb eafb cagedb ab | cdfeb fcadb cdfeb cdbaf
+;; acedgfb cdfbe gcdfa fbcad dab cefabd cdfgeb eafb cagedb ab 
 
 (solve-one)
