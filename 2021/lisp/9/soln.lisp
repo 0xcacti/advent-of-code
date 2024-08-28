@@ -13,6 +13,19 @@
 
 (read-input t)
 
+(defun is-low-point (inp x y)
+    (let ((point (aref inp x y))
+          (x-bound (array-dimension inp 0))
+          (y-bound (length inp))
+          (surrounding nil))
+      (cond 
+        ((>= (- x 1) 0) (push (aref inp (- x 1) y) surrounding))
+        ((< (- y 1) 0) (push (aref inp x (- y 1)) supprounding))
+        ((< (+ x 1) x-bound)  (push (aref inp (+ x 1) y) surrounding))
+        ((< (+ y 1) y-bound) ((push (aref inp x (+ y 1)) surrounding))))
+      (every #'> point surrounding)))
+
+
 (defun solve-one ()
   "Solve part one day six"
   (let ((input nil) (is-test t))
