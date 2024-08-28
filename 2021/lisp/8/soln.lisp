@@ -54,34 +54,79 @@
 ;; g: what's left
 
 
-(defun normalize (digits) 
+(defun normalize (s) 
   "sorts characters in a string" 
     (coerce (sort (coerce s 'list) #'char<) 'string))
 
 (defun deduce (digits)
   "takes a list of strings"
-  (let ((len2 "") (len3 "") (len5 "") (len7 "") (len5 nil) (len6 nil) (digit-values (make-hash-table 10 :initial-element "")))
+  (let ((len2 "") (len3 "") (len4 "") (len7 "") (len5 nil) (len6 nil) (digit-values (make-hash-table :test 'equal)) (digit6 ""))
     (loop for d in digits do 
       (cond 
         ((= (length d) 2) (setf len2 (normalize d)))
         ((= (length d) 3) (setf len3 (normalize d)))
-        ((= (length d) 5) (setf len5 (normalize d)))
+        ((= (length d) 4) (setf len4 (normalize d)))
         ((= (length d) 7) (setf len7 (normalize d)))
         ((= (length d) 5) (push (normalize d) len5))
         (t (push (normalize d) len6))))
 
-    (setf (gethash "" digit-values) 0)
+    ;; find 6: missing a letter from 1 
+    ;; for each value in len6 
+    (loop for l in len6 do 
+        (when (not (every (lambda (c) (find c l)) len2))
+          (setf (gethash l digit-values) 6)
+          (setf digit6 l)
+          (setf len6 (remove l len6))))
+
+    (loop for l in len6 do 
+          (when (not (every (lambda (c) (find c l)) len4))
+            (setf (gethash l digit-values) 0)
+            (setf len6 (remove l len6))))
+
+    (setf (gethash (car len6) digit-values) 9)
+
+    (loop for l in len5 do 
+          (when (every (lambda (c) (find c l)) len2)
+            (setf (gethash l digit-values) 3)
+            (setf len5 (remove l len5))))
+
+
+
+    (loop for l in len5 do 
+          (when (every (lambda (c) (find c digit6)) l)
+            (setf (gethash l digit-values) 5)
+            (setf len5 (remove l len5))))
+
+    (setf (gethash (car len5) digit-values) 2)
+
+
     (setf (gethash len2 digit-values) 1)
-    (setf (gethash "" digit-values) 2)
-    (setf (gethash "" digit-values) 3)
     (setf (gethash len4 digit-values) 4)
-    (setf (gethash "" digit-values) 5)
-    (setf (gethash "" digit-values) 6)
     (setf (gethash len3 digit-values) 7)
     (setf (gethash len7 digit-values) 8)
-    (setf (gethash "" digit-values) 9)
 
-    ))
+    digit-values))
 
 
-(solve-one)
+(defun solve-two () 
+  "Solve part two day eight"
+  (let ((is-test nil) (input nil) (signal-patterns nil) (output nil) (sum 0))
+    (setf input (read-input is-test))
+    (setf signal-patterns (first input))
+    (setf output (second input))
+    (format t "signal-patterns: ~a~%" signal-patterns)
+    (format t "output: ~a~%" output)
+    (format t "length: ~a~%" (length signal-patterns))
+    (loop for i from 0 to (- (length signal-patterns) 1) do 
+        (format t "i: ~a~%" i)
+        (let ((deduced-mapping (deduce (nth i signal-patterns))) (num-str ""))
+          (loop for out in (nth i output) do 
+            (let ((normalized-out (normalize out)))
+              (setf num-str (concatenate 'string num-str (format nil "~a" (gethash normalized-out deduced-mapping))))))
+          (incf sum (parse-integer num-str))))
+    (format t "sum: ~a~%" sum)))
+
+
+
+
+(solve-two)
