@@ -45,7 +45,7 @@
 
 
 (defun solve-one ()
-  "Solve part one day six"
+  "Solve part one day nine"
   (let ((input nil) (is-test nil) (sum 0))
     (setf input (read-input is-test))
     (loop for y from 0 below (length input) do
@@ -56,5 +56,107 @@
     (format t "sum: ~a~%" sum)))
 
 
-(solve-one)
+(defun find-basin (inp pairs y x last-value &optional is-first) 
 
+    (let ((x-bound (length (aref inp 0)))
+          (y-bound (length inp)))
+
+
+      (when (or (>= x x-bound) (>= y y-bound) (< x 0) (< y 0))
+        (return-from find-basin pairs))
+
+      (let ((point (aref (aref inp y) x)))
+
+      (unless is-first 
+          (when (or (<= point last-value) (> (- point last-value) 1) (= point 9))
+            (return-from find-basin pairs)))
+
+      (when (gethash (cons y x) pairs)
+        (return-from find-basin pairs))
+
+
+      (setf (gethash (cons y x) pairs) t)
+
+      ;; this does the recursion 
+      (find-basin inp pairs y (- x 1) point) 
+      (find-basin inp pairs y (+ x 1) point) 
+      (find-basin inp pairs (- y 1) x point)
+      (find-basin inp pairs (+ y 1) x point)))
+  pairs )
+
+
+
+(defun check-basin ()
+  (let ((input nil) (is-test t) (sum 0) (basin nil))
+    (setf input (read-input is-test))
+    (setf basin (find-basin input (make-hash-table :test 'equal) 4 6 5 t))
+    (maphash (lambda (k v) (format t "~a~%" k)) basin)
+    (format t "length: ~a~%" (hash-table-count basin))))
+
+(check-basin)
+    
+
+
+
+
+(solve-two)
+
+
+(defun solve-two ()
+  "Solve part one day nine"
+  (let ((input nil) (is-test nil) (basins nil))
+    (setf input (read-input is-test))
+    (loop for y from 0 below (length input) do
+          (loop for x from 0 below (length (aref input 0)) do
+                (let ((lp (is-low-point input y x)))
+                  (when lp 
+                    (push (hash-table-count (find-basin input (make-hash-table :test 'equal) y x lp t)) basins)))))
+    (setf basins (sort basins #'>))
+    (format t "basins: ~a~%" basins)
+    (let* ((largest-basins (subseq basins 0 (min 3 (length basins))))
+      (product (reduce #'* largest-basins)))
+      (format t "basins: ~a~%" largest-basins)
+      (format t "product: ~a~%" product))))
+
+
+(solve-two)
+
+
+(defun find-basin (inp y x)
+  (let ((x-bound (length (aref inp 0)))
+        (y-bound (length inp))
+        (visited (make-hash-table :test 'equal))
+        (queue nil))
+    (labels ((valid-pos (y x)
+               (and (>= x 0) (< x x-bound) (>= y 0) (< y y-bound)))
+             (enqueue (y x)
+               (when (and (valid-pos y x)
+                          (not (gethash (cons y x) visited))
+                          (< (aref (aref inp y) x) 9))
+                 (push (cons y x) queue)
+                 (setf (gethash (cons y x) visited) t))))
+      (enqueue y x)
+      (loop while queue do
+        (let ((pos (pop queue)))
+          (destructuring-bind (y . x) pos
+            (enqueue (1- y) x)
+            (enqueue (1+ y) x)
+            (enqueue y (1- x))
+            (enqueue y (1+ x))))))
+    (hash-table-count visited)))
+
+(defun solve-two ()
+  "Solve part two day nine"
+  (let ((input nil) (is-test nil) (basins nil))
+    (setf input (read-input is-test))
+    (loop for y from 0 below (length input) do
+          (loop for x from 0 below (length (aref input 0)) do
+                (when (is-low-point input y x)
+                  (push (find-basin input y x) basins))))
+    (setf basins (sort basins #'>))
+    (let* ((largest-basins (subseq basins 0 (min 3 (length basins))))
+           (product (reduce #'* largest-basins)))
+      (format t "Largest basins: ~a~%" largest-basins)
+      (format t "Product: ~a~%" product))))
+
+(solve-two)
