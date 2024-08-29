@@ -8,29 +8,53 @@
       (loop for line = (read-line stream nil)
             while line do 
             (let* ((parts (cl-ppcre:split "" line))) 
-              (vector-push-extend parts inp))))
+              (setf parts (mapcar #'parse-integer parts))
+              (vector-push-extend (coerce parts 'vector) inp))))
+    (setf inp (coerce inp 'vector))
     inp))
 
 (read-input t)
 
-(defun is-low-point (inp x y)
-    (let ((point (aref inp x y))
-          (x-bound (array-dimension inp 0))
+(defun is-low-point (inp y x)
+    (let ((point (aref (aref inp y) x))
+          (x-bound (length (aref inp 0)))
           (y-bound (length inp))
-          (surrounding nil))
-      (cond 
-        ((>= (- x 1) 0) (push (aref inp (- x 1) y) surrounding))
-        ((< (- y 1) 0) (push (aref inp x (- y 1)) supprounding))
-        ((< (+ x 1) x-bound)  (push (aref inp (+ x 1) y) surrounding))
-        ((< (+ y 1) y-bound) ((push (aref inp x (+ y 1)) surrounding))))
-      (every #'> point surrounding)))
+          (surrounding nil)
+          (is-low nil))
+
+        (when (>= (- x 1) 0) 
+         (push (aref (aref inp y) (- x 1)) surrounding))
+
+        (when (< (+ x 1) x-bound) 
+         (push (aref (aref inp y) (+ x 1)) surrounding))
+
+        (when (>= (- y 1) 0) 
+         (push (aref (aref inp (- y 1)) x) surrounding))
+
+
+        (when (< (+ y 1) y-bound)  
+         (push (aref (aref inp (+ y 1)) x) surrounding))
+
+      (when (every (lambda (x) (> x point)) surrounding)
+          (setf is-low point))
+
+      is-low))
+
+
+
 
 
 (defun solve-one ()
   "Solve part one day six"
-  (let ((input nil) (is-test t))
+  (let ((input nil) (is-test nil) (sum 0))
     (setf input (read-input is-test))
-    (format t "input: ~a~%" input)))))
+    (loop for y from 0 below (length input) do
+          (loop for x from 0 below (length (aref input 0)) do
+                (let ((lp (is-low-point input y x)))
+                  (when lp 
+                    (incf sum (+ lp 1))))))
+    (format t "sum: ~a~%" sum)))
+
 
 (solve-one)
 
