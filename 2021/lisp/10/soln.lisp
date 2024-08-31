@@ -12,26 +12,50 @@
 
 (read-input t)
 
+(defstruct queue
+  (elements '()))
+
+(defun create-queue ()
+  "create an empty queue"
+  (make-queue :elements '()))
+
+(defun enqueue (queue element)
+  "add an element to the end of the queue" 
+  (setf (queue-elements queue) 
+        (append (queue-elements queue) (list element))))
+
+(defun dequeue (queue)
+  "remove an element from the front of the queue" 
+  (let ((first-element (first (queue-elements queue))))
+    (setf (queue-elements queue) (rest (queue-elements queue)))
+    first-element))
 
 
-(defun is-valid (input)
-  "check if a set of parens is matched and valid." 
-  (let ((open-stack nil) (close-stack nil))
+(defun matching-brace (open)
+  "Return the expected closing brace for a given opening brace."
+  (cond
+    ((char= open #\( ) #\))
+    ((char= open #\[ ) #\])
+    ((char= open #\{ ) #\})
+    ((char= open #\< ) #\>)
+    (t nil)))
+
+
+(defun meow (input)
+  "Check if a set of braces is matched and valid."
+  (let ((open-stack nil))
     (loop for char across input do 
           (cond 
-            ((member char "({[<") (push char open-stack))
-            ((member char ")}]>") 
-             (progn 
-              (let ((top (car open-stack)))
-                (cond 
-                 ((string= top char)
-                    
-
-  )
+            ((member char '(#\( #\{ #\[ #\<)) (push char open-stack))
+            ((member char '(#\) #\} #\] #\>))
+             (let ((expected (matching-brace (pop open-stack))))
+               (unless (char= char expected)
+                 (return char))))))
+    nil))
 
 
 
-(is-valid "{([(<{}[<>[]}>{[]{[(<()>")
+(meow "{([(<{}[<>[]}>{[]{[(<()>")
 
 
 
@@ -41,17 +65,3 @@
     (setf input (read-input is-test))
     (format t "Input: ~a~%" input)))
 
-(solve-one)
-
-[({(<(())[]>[[{[]{<()<>>
-[(()[<>])]({[<{<<[]>>(
-(((({<>}<{<{<>}{[]{[]{}
-{<[[]]>}<{[{[{[]{()[[[]
-<{([{{}}[<[[[<>{}]]]>[]]
-
-
-{([(<{}[<>[]}>{[]{[(<()> - Expected ], but found } instead.
-[[<[([]))<([[{}[[()]]] - Expected ], but found ) instead.
-[{[{({}]{}}([{[{{{}}([] - Expected ), but found ] instead.
-[<(<(<(<{}))><([]([]() - Expected >, but found ) instead.
-<{([([[(<>()){}]>(<<{{ - Expected ], but found > instead.
