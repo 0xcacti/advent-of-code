@@ -93,9 +93,18 @@
     (format t "Sum: ~a~%" sum)))
 
 
-(defun find-matches ())
+(defun matching-brace (char)
+  "Returns the matching closing brace for a given opening brace"
+  (case char
+    (#\( #\))
+    (#\[ #\])
+    (#\{ #\})
+    (#\< #\>)
+    (otherwise nil)))
+
+
 (defun find-matches (input)
-  "build a string to complete the match" 
+  "Build a string to complete the match and return unmatched opening brackets" 
   (let ((stack nil))
     (loop for char across input do
           (cond 
@@ -104,20 +113,35 @@
             ((member char '(#\) #\} #\] #\>))
              (if (or (null stack)
                      (not (char= (matching-brace (car stack)) char)))
-                 (return-from meow char)
+                 (return-from find-matches nil)
                  (pop stack)))))
-    nil))
+    stack))
 
-
-(defun line-sum ()
+(defun line-sum (line)
   "find sum for a line"
-  )
+  (let ((unmatches (find-matches line))
+        (sum 0))
+    (format t "Unmatches: ~a~%" unmatches)
+    (when unmatches
+      (loop for char across (coerce unmatches 'string) do 
+            (setf sum (* sum 5))
+            (incf sum (case char 
+                        (#\( 1)
+                        (#\[ 2)
+                        (#\{ 3)
+                        (#\< 4)
+                        (otherwise 0)))))
+    sum))
+
+
+(line-sum "[({(<(())[]>[[{[]{<()<>>")
 
 
 (defun solve-two ()
   "Solve part two day ten"
-  (let ((input (read-input nil)) (scores (make-array 0 :adjustable t :fill-pointer0)))
+  (let ((input (read-input nil)) (scores (make-array 0 :adjustable t :fill-pointer 0)))
     (setf input (remove-if-not #'(lambda (line) (null (meow line))) input))
+    (format t "Input: ~a~%" input)
     (loop for i from 0 below (length input)
           for line = (aref input i)
           for result = (line-sum line)
