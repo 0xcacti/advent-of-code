@@ -93,4 +93,36 @@
     (format t "Sum: ~a~%" sum)))
 
 
+(defun find-matches ())
+(defun find-matches (input)
+  "build a string to complete the match" 
+  (let ((stack nil))
+    (loop for char across input do
+          (cond 
+            ((member char '(#\( #\{ #\[ #\<))
+             (push char stack))
+            ((member char '(#\) #\} #\] #\>))
+             (if (or (null stack)
+                     (not (char= (matching-brace (car stack)) char)))
+                 (return-from meow char)
+                 (pop stack)))))
+    nil))
+
+
+(defun line-sum ()
+  "find sum for a line"
+  )
+
+
+(defun solve-two ()
+  "Solve part two day ten"
+  (let ((input (read-input nil)) (scores (make-array 0 :adjustable t :fill-pointer0)))
+    (setf input (remove-if-not #'(lambda (line) (null (meow line))) input))
+    (loop for i from 0 below (length input)
+          for line = (aref input i)
+          for result = (line-sum line)
+          do 
+          (vector-push-extend result scores))
+    (setf scores (sort scores #'<))
+    (format t "Winner is: ~a~%" (aref scores (+ (truncate (/ (length scores) 2) 1))))))
 
