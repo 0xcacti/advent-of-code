@@ -42,26 +42,55 @@
 
 
 (defun meow (input)
-  "Check if a set of braces is matched and valid."
-  (let ((open-stack nil))
-    (loop for char across input do 
+  "Check if a set of parens is matched and valid." 
+  (let ((stack nil))
+    (loop for char across input do
           (cond 
-            ((member char '(#\( #\{ #\[ #\<)) (push char open-stack))
+            ((member char '(#\( #\{ #\[ #\<))
+             (push char stack))
             ((member char '(#\) #\} #\] #\>))
-             (let ((expected (matching-brace (pop open-stack))))
-               (unless (char= char expected)
-                 (return char))))))
+             (if (or (null stack)
+                     (not (char= (matching-brace (car stack)) char)))
+                 (return-from meow char)
+                 (pop stack)))))
     nil))
 
 
-
-(meow "{([(<{}[<>[]}>{[]{[(<()>")
-
-
+;; (defun solve-one ()
+;;   "Solve part one day ten"
+;;   (let ((input (read-input t)) 
+;;         (sum 0))
+;;     (loop for i from 0 below (length input) 
+;;           for line = (aref input i)
+;;           for result = (meow line)
+;;           do 
+;;           (format t "Input: ~a~%" line)
+;;           when result 
+;;           (incf sum (case result 
+;;                       (#\) 3)
+;;                       (#\] 57)
+;;                       (#\} 1197)
+;;                       (#\> 25137)
+;;                       (otherwise 0)))
+;;   (format t "Sum: ~a~%" sum)))
 
 (defun solve-one ()
   "Solve part one day ten"
-  (let ((input nil) (is-test t) (sum 0))
-    (setf input (read-input is-test))
-    (format t "Input: ~a~%" input)))
+  (let ((input (read-input nil)) 
+        (sum 0))
+    (loop for i from 0 below (length input) 
+          for line = (aref input i)
+          for result = (meow line)
+          do 
+          (format t "Input: ~a~%" line)
+          when result 
+          do (incf sum (case result 
+                         (#\) 3)
+                         (#\] 57)
+                         (#\} 1197)
+                         (#\> 25137)
+                         (otherwise 0))))
+    (format t "Sum: ~a~%" sum)))
+
+
 
