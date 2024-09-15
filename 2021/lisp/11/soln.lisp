@@ -20,36 +20,49 @@
                  do (incf (aref (aref grid i) j))))
   grid)
 
-(increment-all (read-input t))
-
 (defun run-flashes (grid flash-count has-flashed row col)
   "Run the flashes"
-  (if (> (aref (aref grid row) col) 9))
-
+  (when (and (>= row 0) (< row (length grid))
+             (>= col 0) (< col (length (aref grid 0)))
+             (not (aref has-flashed row col)))
+    (when (> (aref (aref grid row) col) 9)
+      (setf (aref has-flashed row col) t)
+      (incf flash-count)
+      (setf (aref (aref grid row) col) 0)
+      (loop for dx from -1 to 1 do
+        (loop for dy from -1 to 1 do
+          (let ((new-row (+ row dx))
+                (new-col (+ col dy)))
+            (when (and (>= new-row 0) (< new-row (length grid))
+                       (>= new-col 0) (< new-col (length (aref grid 0)))
+                       (not (aref has-flashed new-row new-col)))
+              (incf (aref (aref grid new-row) new-col))
+              (setf (values grid flash-count)
+                    (run-flashes grid flash-count has-flashed new-row new-col)))))))
+    (values grid flash-count)))
 
 (defun run-step (grid)
-  "run a step"
-  (setf grid (increment-all grid))
-
-
-
+  "Run a step"
+  (let* ((rows (length grid))
+         (cols (length (aref grid 0)))
+         (has-flashed (make-array (list rows cols) :initial-element nil))
+         (flash-count 0))
+    (setf grid (increment-all grid))
+    (loop for row from 0 below rows do
+      (loop for col from 0 below cols do
+        (setf (values grid flash-count)
+              (run-flashes grid flash-count has-flashed row col))))
+    (values grid flash-count)))
 
 (defun solve-one ()
-  "Solve part one day eleven"
-  (let ((input (read-input nil)) 
-        (sum 0))
-    (loop for i from 0 below (length input) 
-          for line = (aref input i)
-          for result = (meow line)
-          do 
-          (format t "Input: ~a~%" line)
-          when result 
-          do (incf sum (case result 
-                         (#\) 3)
-                         (#\] 57)
-                         (#\} 1197)
-                         (#\> 25137)
-                         (otherwise 0))))
-    (format t "Sum: ~a~%" sum)))
+  "Solve part one of day eleven"
+  (let* ((input (read-input t))
+         (total-flashes 0))
+    (loop repeat 100 do
+      (multiple-value-bind (new-grid step-flashes)
+          (run-step input)
+        (setf input new-grid)
+        (incf total-flashes step-flashes)))
+    (format t "Total flashes after 100 steps: ~a~%" total-flashes)))
 
-
+(solve-one)
