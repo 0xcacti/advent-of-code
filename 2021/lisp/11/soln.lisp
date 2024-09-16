@@ -20,15 +20,23 @@
                  do (incf (aref (aref grid i) j))))
   grid)
 
+(increment-all (read-input t))
+
 (defun run-flashes (grid flash-count has-flashed row col)
   "Run the flashes"
+  ;; if the row and col are within bounds and the cell has not been flashed
   (when (and (>= row 0) (< row (length grid))
              (>= col 0) (< col (length (aref grid 0)))
              (not (aref has-flashed row col)))
+    ;; if the cell is greater than 9, flash it
     (when (> (aref (aref grid row) col) 9)
+      ;; set has-flashed to true
       (setf (aref has-flashed row col) t)
+      ;; increment the flash count
       (incf flash-count)
+      ;; reset the cell to 0
       (setf (aref (aref grid row) col) 0)
+      (format t "Flashing cell at ~a, ~a~%" row col)
       (loop for dx from -1 to 1 do
         (loop for dy from -1 to 1 do
           (let ((new-row (+ row dx))
@@ -40,6 +48,8 @@
               (setf (values grid flash-count)
                     (run-flashes grid flash-count has-flashed new-row new-col)))))))
     (values grid flash-count)))
+
+(run-flashes (increment-all (read-input t)) 0 (make-array (list 10 10) :initial-element nil) 0 0)
 
 (defun run-step (grid)
   "Run a step"
@@ -53,6 +63,31 @@
         (setf (values grid flash-count)
               (run-flashes grid flash-count has-flashed row col))))
     (values grid flash-count)))
+
+(defun print-grid (grid)
+  (loop for row across grid do
+    (loop for cell across row do
+      (format t "~2d " cell))
+    (format t "~%")))
+
+(let ((grid (increment-all (read-input t))))
+  (print-grid grid)
+  (format t "Grid dimensions: ~dx~d~%" (length grid) (length (aref grid 0))))
+
+(defparameter *test-grid* (read-input t))
+(defparameter *flashes* 0)
+(multiple-value-bind (new-grid flashes)
+    (run-step *test-grid*)
+  (setf *test-grid* new-grid)
+  (incf *flashes* flashes))
+
+
+(multiple-value-bind (new-grid flashes)
+    (run-step *test-grid*)
+  (setf *test-grid* new-grid)
+  (incf *flashes* flashes))
+*test-grid*
+*flashes*
 
 (defun solve-one ()
   "Solve part one of day eleven"
