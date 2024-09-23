@@ -30,8 +30,12 @@
     (push "start" todo)
     (loop while todo 
           (let ((path (pop todo)))
+            (format t "path: ~a~%" path)
           (when (string= (last path) "end")
             (push path all-paths))
+          (loop for next in (gethash (last path) caves)
+                when (and (not (is-lower next)) (not (member next path)))
+                do (push (append path (list next)) todo))))
 
 
-  ))
+  ))))
