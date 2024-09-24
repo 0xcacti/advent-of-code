@@ -22,20 +22,21 @@
 
 (print-map (read-input t))
 
-(defun solve-one () 
-  "Solution to day 12, part one" 
+(defun solve-one ()
+  "Solution to day 12, part one"
   (let* ((caves (read-input t))
-         (todo '())
+         (todo '())  ;; This will hold paths as lists of caves
          (all-paths '()))
-    (push "start" todo)
-    (loop while todo 
-          (let ((path (pop todo)))
-            (format t "path: ~a~%" path)
-          (when (string= (last path) "end")
-            (push path all-paths))
-          (loop for next in (gethash (last path) caves)
-                when (and (not (is-lower next)) (not (member next path)))
-                do (push (append path (list next)) todo))))
+    (push '("start") todo)  ;; Push a list containing "start"
+    (loop while todo
+          do (let* ((path (pop todo))  ;; Pop the path (which is a list of caves)
+                    (current (elt path (1- (length path)))))  ;; Get the last cave in the path using elt
+               (format t "path: ~a~%" path)
+               (when (string= current "end")
+                 (push path all-paths))  ;; Add to the all-paths if we've reached the end
+               (loop for next in (gethash current caves)
+                     when (or (not (is-lower next)) (not (member next path)))
+                     do (push (append path (list next)) todo)))))
+    all-paths))  ;; Return the list of all paths
 
-
-  ))))
+(solve-one)
