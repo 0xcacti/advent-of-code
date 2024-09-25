@@ -49,6 +49,8 @@
     (hash-table-count all-paths)))  ;; Return the count of unique paths
 (solve-one)
 
+
+
 (defun solve-two ()
   "Solution to day 12, part two"
   (let* ((caves (read-input nil))
