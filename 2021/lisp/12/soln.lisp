@@ -55,23 +55,26 @@
   "Solution to day 12, part two"
   (let* ((caves (read-input nil))
          (todo '())  
-         (all-paths (make-hash-table :test 'equal))
-         (have-doubled nil))  
-    (push '("start") todo)  ;; Push a list containing "start"
+         (all-paths (make-hash-table :test 'equal)))  
+    (push '('("start") nil) todo)  
     (loop while todo
-          do (let* ((path (pop todo))  ;; Pop the path (which is a list of caves)
+          do (let* ((path-with-revist-val (pop todo))  ;; Pop the path (which is a list of caves)
+                    (path (first path-with-revist-val))
+                    (revisit (second path-with-revist-val))
                     (current (elt path (1- (length path)))))  ;; Get the last cave in the path using elt
-               (format t "Processing path: ~a, Current: ~a~%" path current)
+
                (when (string= current "end")
                  (setf (gethash (format nil "~{~a~^,~}" path) all-paths) t)  ;; Add path to hash table
                  (continue))  ;; Continue to next iteration if we've reached the end
+
                (let ((connections (gethash current caves)))
-                 (format t "Connections for ~a: ~a~%" current connections)
-                 (loop for next in connections
-                       do (format t "considering next: ~a~%" next)
-                       unless (string= next "start")
-                       when (or (not (is-lower next)) (not (member next path :test #'string=)))
-                       do (push (append path (list next)) todo)))))
-    (hash-table-count all-paths)))  ;; Return the count of unique paths
+                 (loop for next in connections do 
+                       (cond 
+                         ((string= next "start") (continue))
+                         ((not (is-lower next)) 
+                            (push (append path (list next)) todo))
+                         ((or (not (is-lower next)) (not (member next path :test #'string=))) 
+                            (push (append path (list next)) todo)))))))
+    (hash-table-count all-paths)))
 
 (solve-two)
