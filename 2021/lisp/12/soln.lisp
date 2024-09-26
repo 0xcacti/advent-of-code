@@ -72,7 +72,7 @@
                        (cond 
                          ((string= next "start") (continue))
                          ((not (is-lower next)) 
-                            (push (append path (list next)) todo))
+                            (push (list (append path (list next)) revisit) todo))
                          ((or (not (is-lower next)) (not (member next path :test #'string=))) 
                             (push (append path (list next)) todo)))))))
     (hash-table-count all-paths)))
