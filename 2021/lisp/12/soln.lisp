@@ -26,6 +26,10 @@
   "Check if string s is all lowercase"
   (string= s (string-downcase s)))
 
+(defun is-upper (s)
+  "Check if string s is all lowercase"
+  (string= s (string-upcase s)))
+
 
 (defun solve-one ()
   "Solution to day 12, part one"
@@ -54,27 +58,30 @@
 (defun solve-two ()
   "Solution to day 12, part two"
   (let* ((caves (read-input nil))
-         (todo '())  
-         (all-paths (make-hash-table :test 'equal)))  
-    (push '('("start") nil) todo)  
+         (todo '())
+         (done (make-hash-table :test 'equal)))
+    (push '(("start") nil) todo)
     (loop while todo
-          do (let* ((path-with-revist-val (pop todo))  ;; Pop the path (which is a list of caves)
-                    (path (first path-with-revist-val))
-                    (revisit (second path-with-revist-val))
-                    (current (elt path (1- (length path)))))  ;; Get the last cave in the path using elt
+          do (let* ((path-with-revisit (pop todo))
+                    (path (first path-with-revisit))
+                    (double-small (second path-with-revisit))
+                    (current (car (last path))))
+               (if (string= current "end")
+                   (setf (gethash path done) t)
+                   (let ((connections (gethash current caves)))
+                     (loop for next in connections
+                           do (cond
+                                ((string= next "start")
+                                 (continue))
+                                ((is-upper next)
+                                 (push (list (append path (list next)) double-small) todo))
+                                ((not (member next path :test #'string=))
+                                 (push (list (append path (list next)) double-small) todo))
+                                ((and (not double-small) (= (count next path :test #'string=) 1))
+                                 (push (list (append path (list next)) t) todo))))))))
+    (hash-table-count done)))
 
-               (when (string= current "end")
-                 (setf (gethash (format nil "~{~a~^,~}" path) all-paths) t)  ;; Add path to hash table
-                 (continue))  ;; Continue to next iteration if we've reached the end
-
-               (let ((connections (gethash current caves)))
-                 (loop for next in connections do 
-                       (cond 
-                         ((string= next "start") (continue))
-                         ((not (is-lower next)) 
-                            (push (list (append path (list next)) revisit) todo))
-                         ((or (not (is-lower next)) (not (member next path :test #'string=))) 
-                            (push (append path (list next)) todo)))))))
-    (hash-table-count all-paths)))
+(defun is-upper (s)
+  (every #'upper-case-p s))
 
 (solve-two)
