@@ -14,3 +14,5 @@
 
 (read-input t)
 
+
+(defun solve-one ())
