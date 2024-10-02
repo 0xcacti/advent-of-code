@@ -7,6 +7,8 @@
     (with-open-file (stream path :direction :input)
       (loop for line = (read-line stream nil)
             while line do 
+                (cond 
+                  ((string= line "") 
               (let ((line-array (cl-ppcre:split "-" line)))
                 (push (second line-array) (gethash (first line-array) caves '()))
                 (push (first line-array) (gethash (second line-array) caves '())))))
