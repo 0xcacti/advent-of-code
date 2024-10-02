@@ -92,3 +92,30 @@
     (format t "num coords:~a~%" (hash-table-count coords)))))
 
 (solve-one)
+
+(defun pretty-print(coords) 
+    (let ((max-x (get-max-x coords))
+          (max-y (get-max-y coords)))
+    (loop for y from 0 to max-y do 
+          (loop for x from 0 to max-x do 
+                (if (gethash (list x y) coords)
+                    (format t "#")
+                    (format t ".")))
+          (format t "~%"))))
+
+(defun solve-two ()
+  (multiple-value-bind (coords folds) (read-input nil)
+    (format t "Coords:~%")
+    (print-map coords)
+    (format t "Folds: ~a~%" folds)
+    (loop for fold in folds do 
+        (let ((max-x (get-max-x coords))
+              (max-y (get-max-y coords))
+              (fold-direction (last-n-chars 1 (first fold)))
+              (fold-line (second fold)))
+        (if (string= fold-direction "x")
+            (setf coords (perform-x-fold coords fold-line max-x max-y))
+            (setf coords (perform-y-fold coords fold-line max-x max-y)))))
+
+    (pretty-print coords)))
+(solve-two)
