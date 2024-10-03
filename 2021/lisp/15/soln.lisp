@@ -21,11 +21,11 @@
 ;; Define the heap structure and operations
 (defstruct heap
   (data (make-array 0 :adjustable t :fill-pointer 0))
-  (compare-fn #'<))
+  (compare-fn #'<))  ;; Assume this is a min-heap
 
 (defun heap-insert (heap element)
   "Insert ELEMENT into the HEAP, maintaining the heap property."
-  (vector-push-extend element (heap-data heap))
+  (vector-push-extend element (heap-data heap))  ;; Insert at the end
   (heapify-up heap (1- (fill-pointer (heap-data heap)))))
 
 (defun heap-extract-min (heap)
@@ -47,7 +47,7 @@
     (loop
       for parent = (floor (1- idx) 2)
       while (and (> idx 0)
-                 ;; Compare the cost of the elements, i.e., (first (aref data idx)) and (first (aref data parent))
+                 ;; Compare only the costs (first element of the list)
                  (funcall compare-fn (first (aref data idx)) (first (aref data parent))))
       do (rotatef (aref data idx) (aref data parent))
          (setf idx parent))))
@@ -62,7 +62,7 @@
       for right-child = (+ 2 (* 2 idx))
       while (< left-child count)
       do (let* ((smallest (if (and (< right-child count)
-                                   ;; Compare the cost of the children
+                                   ;; Compare only the costs (first element of the list)
                                    (funcall compare-fn (first (aref data right-child))
                                             (first (aref data left-child))))
                               right-child
@@ -75,6 +75,16 @@
                (return))))))
 
 ;; Dijkstra's algorithm with priority queue
+(defun neighbors (row col max-row max-col)
+  "Return the valid neighboring positions for a given (ROW, COL)."
+  (remove-if-not
+   (lambda (pos)
+     (let ((r (first pos)) (c (second pos)))
+       (and (>= r 0) (< r max-row) (>= c 0) (< c max-col))))
+   `((,(1- row) ,col)
+     (,(1+ row) ,col)
+     (,row ,(1- col))
+     (,row ,(1+ col)))))
 
 (defun dijkstra (grid)
   "Run Dijkstra's algorithm to find the shortest path from the top-left to bottom-right."
@@ -91,7 +101,7 @@
     (loop
       while (> (fill-pointer (heap-data heap)) 0)
       for current = (heap-extract-min heap)
-      for current-cost = (first current)
+      for current-cost = (first current)  ;; Extract only the cost
       for row = (second current)
       for col = (third current)
 
@@ -114,9 +124,8 @@
 
 (defun solve-one ()
   "Solve day 15 part one."
-  (let ((grid (read-input nil)))  ;; Change 'nil' to 't' to use the test input
+  (let ((grid (read-input nil)))  ;; Use 't' for test input, 'nil' for actual input
     (let ((result (dijkstra grid)))
       (format t "The shortest path cost is: ~a~%" result))))
 
-;; To run the solution
 (solve-one)
