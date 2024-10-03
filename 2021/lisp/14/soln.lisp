@@ -81,24 +81,6 @@
 (solve-one)
 
 (defun update-pair-counts (pair-counts char-counts instructions)
-  (let ((new-pair-counts (make-hash-table :test 'equal)))
-      (maphash (lambda (pair count)
-               (let ((instruction (gethash pair instructions)))
-                 (when instruction
-                   ;; The current pair is being split into two new pairs
-                   (let* ((left (subseq pair 0 1))
-                          (right (subseq pair 1 2))
-                          (new-pair1 (concatenate 'string left instruction))
-                          (new-pair2 (concatenate 'string instruction right)))
-                     ;; Update new pair counts
-                     (incf (gethash new-p-pair1 new-pair-counts 0) count)
-                     (incf (gethash new-p-pair2 new-pair-counts 0) count)
-                     ;; Also increment the count of the inserted character
-                     (incf (gethash instruction char-counts 0) count)))))
-             pair-counts)
-    new-pair-counts))
-
-(defun update-pair-counts (pair-counts char-counts instructions)
   "Update pair counts and character counts for one iteration based on instructions."
   (let ((new-pair-counts (make-hash-table :test 'equal)))
     (maphash (lambda (pair count)
@@ -115,56 +97,26 @@
     new-pair-counts))
 
 (defun solve-two () 
-  "Solve day 14 part one" 
-  (multiple-value-bind (instructions start) (read-input nil)
-    (let ((pair-counts (make-hash-table :test 'equal))
-           (char-counts (make-hash-table :test 'equal)))
-        (loop for i from 0 to (length start) 
-              when (<= (+ i 2) (length start)) do
-         (let ((pair (subseq start i (+ i 2))))
-           (incf (gethash pair pair-counts 0))
-           (incf (gethash (subseq start i (+ i 1)) char-counts 0)))
-
-         (loop for i from 0 below 40 do 
-          (setf pair-counts (update-pair-counts pair-counts char-counts instructions)))
-
-         (let ((max-count 0)
-              (min-count most-positive-fixnum))
-           (maphash (lambda (char count)
-                      (setf max-count (max max-count count))
-                      (setf min-count (min min-count count)))
-                    char-counts)
-           (format t "~a~%" (- max-count min-count)))))))
-
-
-
-(defun solve-two ()
-  "Solve day 14 part two (40 iterations)."
+  "Solve day 14 part two" 
   (multiple-value-bind (instructions start) (read-input nil)
     (let ((pair-counts (make-hash-table :test 'equal))
           (char-counts (make-hash-table :test 'equal)))
-      ;; Initialize the pair counts and character counts from the starting string
-      (loop for i from 0 below (- (length start) 1) do
-            (let ((pair (subseq start i (+ i 2))))
-              (incf (gethash pair pair-counts 0))
-              ;; Also count each individual character
-              (incf (gethash (subseq start i (+ i 1)) char-counts 0)))
-            ;; Count the last character of the string (since it's not part of any pair)
-            (incf (gethash (subseq start (- (length start) 1)) char-counts 0)))
+      ;; Count all characters in the initial polymer
+      (loop for char across start do
+        (incf (gethash (string char) char-counts 0)))
       
-      ;; Perform 40 iterations to update pair counts
-      (loop for i from 0 below 40 do
-            (setf pair-counts (update-pair-counts pair-counts char-counts instructions)))
+      ;; Count initial pairs
+      (loop for i from 0 below (1- (length start)) do
+        (let ((pair (subseq start i (+ i 2))))
+          (incf (gethash pair pair-counts 0))))
 
-      ;; After 40 iterations, calculate the most and least common character frequencies
-      (let ((max-count 0)
-            (min-count most-positive-fixnum))
-        (maphash (lambda (char count)
-                   (setf max-count (max max-count count))
-                   (setf min-count (min min-count count)))
-                 char-counts)
-        ;; Return the difference between the most and least common counts
-        (- max-count min-count)))))
+      ;; Perform 40 iterations
+      (loop repeat 40 do 
+        (setf pair-counts (update-pair-counts pair-counts char-counts instructions)))
 
+      ;; Calculate the result
+      (let ((counts (loop for count being the hash-values of char-counts
+                          collect count)))
+        (- (apply #'max counts) (apply #'min counts))))))
 
 (solve-two)
