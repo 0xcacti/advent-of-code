@@ -129,3 +129,28 @@
       (format t "The shortest path cost is: ~a~%" result))))
 
 (solve-one)
+
+
+(defun expand-grid (grid factor)
+  "Expand the grid by FACTOR in both dimensions."
+  (let* ((rows (array-dimension grid 0))
+         (cols (array-dimension grid 1))
+         (new-rows (* rows factor))
+         (new-cols (* cols factor))
+         (expanded-grid (make-array (list new-rows new-cols) :initial-element 0)))
+    (loop for i from 0 below new-rows do
+         (loop for j from 0 below new-cols do
+            (let* ((original-value (aref grid (mod i rows) (mod j cols)))
+                   (add-value (+ (floor i rows) (floor j cols))))
+              (setf (aref expanded-grid i j) (+ (mod (+ original-value add-value -1) 9) 1)))))
+    expanded-grid))
+
+
+(defun solve-two ()
+  "Solve day 15 part two."
+  (let* ((grid (read-input nil))  ;; Use 't' for test input, 'nil' for actual input
+         (expanded-grid (expand-grid grid 5))
+         (result (dijkstra expanded-grid)))
+    (format t "The shortest path cost in the expanded grid is: ~a~%" result)))
+
+(solve-two)
