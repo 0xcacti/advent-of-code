@@ -154,3 +154,13 @@
     (format t "The shortest path cost in the expanded grid is: ~a~%" result)))
 
 (solve-two)
+
+
+(defun meow() 
+    (woof t)
+    (format t "meow~%"))
+    (format t "meow~%"))
+(meow)
+
+(some-other-func (1- n) b (+ a b) (push acc a))
+
