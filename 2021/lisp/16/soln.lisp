@@ -9,6 +9,18 @@
             (setf code (concatenate 'string code line))))
     code))
 
+(defun read-input (is-test)
+  (let* ((input-file (if is-test "test-input.txt" "input.txt"))
+         (path (merge-pathnames input-file #P"~/code/challenges/aoc/2021/lisp/16/"))
+         (code ""))
+    (with-open-file (stream path :direction :input)
+      (loop for row from 0 
+            for line = (read-line stream nil)
+            while line do 
+            (setf code (concatenate 'string code line))))
+    code))
+
+
 (defun hex-to-binary (hex-string)
   "Convert a hexadecimal string to its binary representation with leading zeros."
   (let ((integer-value (parse-integer hex-string :radix 16)))
@@ -112,19 +124,6 @@
 (defun packet (code start)
 
 
-(defun solve-one () 
-  (let* ((code (read-input nil))
-         (test-code "38006F45291200")
-         (binary (hex-to-binary test-code)))
-    (format t "Binary representation: ~a~%" binary)  ;; Add this line to debug
-    (format t "Version: ~a~%" (get-version binary 0))
-    (format t "Message type: ~a~%" (get-message-type binary 3))
-    (format t "Length type ID: ~a~%" (get-length-type-id binary 6))
-    (format t "next packet ~a~%" (read-n-bits binary 7 15))
-    (format t "next packet ~a~%" (read-n-bits binary 22 11))
-    (format t "next packet ~a~%" (read-n-bits binary 33 16))))
-
-(solve-one)  
 
 
 ;; First 3 bits - Version - only the thing we sum
@@ -138,19 +137,20 @@
         ;; == 0 -- the next 11 bits are the total number of sub packets contained
 
 
+        
 (defun parse-packet (code start)
   (let* ((version (get-version code start))
          (type-id (get-message-type code (+ start 3)))
-         (version-sum 0)
          (current-pos (+ start 6))) ; After reading version and type ID
     (if (= type-id 4)
         ;; Literal value packet
         (multiple-value-bind (value new-pos) (literal-value code current-pos)
-          ;; Return the packet data and the new position
-          (values (list :version version :type-id type-id :value value) new-pos))
+          ;; Return the packet data, new position, and version sum
+          (values (list :version version :type-id type-id :value value) new-pos version))
         ;; Operator packet
         (let* ((length-type-id (get-length-type-id code current-pos))
-               (current-pos (1+ current-pos))) ; Move past length type ID
+               (current-pos (1+ current-pos)) ; Move past length type ID
+               (version-sum version)) ; Start the version sum with the current version
           (if (= length-type-id 0)
               ;; Next 15 bits are total length in bits of sub-packets
               (let* ((total-length (read-n-bits code current-pos 15))
@@ -159,23 +159,36 @@
                      (sub-packets '()))
                 ;; Parse sub-packets until reaching end-pos
                 (loop while (< current-pos end-pos)
-                      do (multiple-value-bind (packet new-pos)
+                      do (multiple-value-bind (packet new-pos sub-version-sum)
                              (parse-packet code current-pos)
                            (push packet sub-packets)
+                           (incf version-sum sub-version-sum)
                            (setf current-pos new-pos)))
                 (values (list :version version :type-id type-id :sub-packets (nreverse sub-packets))
-                        current-pos))
+                        current-pos
+                        version-sum))
               ;; Next 11 bits are number of sub-packets
               (let* ((num-sub-packets (read-n-bits code current-pos 11))
                      (current-pos (+ current-pos 11))
                      (sub-packets '()))
                 ;; Parse num-sub-packets sub-packets
                 (loop for i from 1 to num-sub-packets
-                      do (multiple-value-bind (packet new-pos)
+                      do (multiple-value-bind (packet new-pos sub-version-sum)
                              (parse-packet code current-pos)
                            (push packet sub-packets)
+                           (incf version-sum sub-version-sum)
                            (setf current-pos new-pos)))
                 (values (list :version version :type-id type-id :sub-packets (nreverse sub-packets))
-                        current-pos)))))))
+                        current-pos
+                        version-sum)))))))
 
-(parse-packet (hex-to-binary "8A004A801A8002F478") 0)
+
+(defun solve-one () 
+  (let* ((hex-code (read-input nil))
+         (binary (hex-to-binary hex-code)))
+    (multiple-value-bind (packet new-pos version-sum)
+        (parse-packet binary 0)
+      (format t "Version Sum: ~a~%" version-sum)
+      version-sum)))
+
+(solve-one)
