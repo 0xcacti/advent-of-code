@@ -26,34 +26,92 @@
 
 (read-input t)
 
-;; (defun read-input (is-test)
-;;   (let* ((input-file (if is-test "test-input.txt" "input.txt"))
-;;          (path (merge-pathnames input-file #P"~/code/challenges/aoc/2021/lisp/14/"))
-;;          (instructions (make-hash-table :test 'equal))
-;;          (start ""))
-;;     (format t "Input file: ~a~%" input-file)
-;;     (with-open-file (stream path :direction :input)
-;;       (loop for line = (read-line stream nil)
-;;             while line do 
-;;             (when (and line (not (string= line "")))
-;;                 (cond 
-;;                   ((string-contains-p "-" line)
-;;                    (let ((line-array (cl-ppcre:split " -> " line)))
-;;                       (setf 
-;;                         (gethash (first line-array) instructions) (second line-array))))
-;;                   (t (setf start line))))))
-;;     (values instructions start)))
+;; inp = 'target area: x=138..184, y=-125..-71'
+;; x_min, x_max = [int(x) for x in inp.split(', ')[0].split('=')[1].split('..')] 
+;; y_min, y_max = [int(x) for x in inp.split(', ')[1].split('=')[1].split('..')]
+;; 
+;; vx, vy, n = 0, 0, 0
+;; run = 400 
+;; starting_velocities = [] 
+;; for vx in range(1, run): 
+;;     vx_start = vx 
+;;     for vy in range(-run, run): 
+;;         vy_start = vy 
+;;         k = vx 
+;;         l = vy x,y = 0,0 
+;;         for n in range(1,run): 
+;;             x += k 
+;;             k = k-1 if k>0 else k+1 if k<0 else k 
+;;             y += l 
+;;             l = l-1 
+;;             if x_min <= x <= x_max and y_min <= y <= y_max:
+;;                 starting_velocities.append((vx_start,vy_start))
+;; 
+
+(defun in-range (x y x-min x-max y-min y-max) 
+  (and (and (>= x x-min) (<= x x-max)) 
+           (and (>= y y-min) (<= y y-max))))
 
 
-(read-input t)
+(defun get-starting-velocities (x-min x-max y-min y-max) 
+    (let ((run 400)
+          (starting-velocities '()))
+        (loop for vx from 0 below run do 
+              (format t "step ~a of ~a~%" vx run)
+              (let ((vx-start vx))
+                (loop for vy from (* -1 run) below run do 
+                      (let ((vy-start vy)
+                        (k vx)
+                        (l vy)
+                        (x 0)
+                        (y 0))
+                        (loop for n from 1 below run do 
+                           (incf x k)
+                           (if (> k 0) (decf k)
+                           (if (< k 0) (incf k)))
+                           (incf y l)
+                           (setf l (- l 1))
+                           (when (in-range x y x-min x-max y-min y-max)
+                             (format t "we are pushing~%")
+                             (push (list vx-start vy-start) starting-velocities)))))))
+      starting-velocities))
 
+(defun find-max-y (vs)
+  (let ((maxi -100000000))
+    (loop for v in vs do 
+        (let* ((vx (first v))
+               (vy (second v))
+               (k vy)
+               (x 0)
+               (y 0))
+          (loop while (> k 0) do 
+                (setf y (+ y k))
+                (decf k)
+                (setf maxi (max maxi y)))))
+    maxi))
 
 (defun solve-one () 
-  (let* ((hex-code (read-input nil))
-         (binary (hex-to-binary hex-code)))
-    (multiple-value-bind (packet new-pos version-sum)
-        (parse-packet binary 0)
-      (format t "Version Sum: ~a~%" version-sum)
-      version-sum)))
+  "Solve day 17 part one" 
+  (multiple-value-bind (x-range y-range)
+      (read-input nil)
+    (let* ((x-min (first x-range))
+           (x-max (second x-range))
+           (y-min (first y-range))
+           (y-max (second y-range))
+           (starting-velocities (get-starting-velocities x-min x-max y-min y-max)))
+      (format t "~a~%" (find-max-y starting-velocities)))))
 
 (solve-one)
+
+(defun solve-two ()
+  "Solve day 17 part two"
+  (multiple-value-bind (x-range y-range)
+      (read-input nil)
+    (let* ((x-min (first x-range))
+           (x-max (second x-range))
+           (y-min (first y-range))
+           (y-max (second y-range))
+           (starting-velocities (get-starting-velocities x-min x-max y-min y-max)))
+      (format t "~a~%" (length (remove-duplicates starting-velocities :test #'equal))))))
+
+(solve-two)
