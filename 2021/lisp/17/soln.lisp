@@ -24,7 +24,6 @@
     (format t "target area ~%x: (~a, ~a) y: (~a, ~a)~%" xmin xmax ymin ymax)
     (values (list xmin xmax) (list ymin ymax))))
 
-(read-input t)
 
 ;; inp = 'target area: x=138..184, y=-125..-71'
 ;; x_min, x_max = [int(x) for x in inp.split(', ')[0].split('=')[1].split('..')] 
