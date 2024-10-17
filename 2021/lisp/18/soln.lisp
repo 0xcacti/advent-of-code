@@ -14,13 +14,13 @@
          (actual-pairs '()))
     
     ;; First, find all positions of matches
-    (cl-ppcre:do-matches-as-strings (pair pair-regex snail-num)
-      (let ((pos (cl-ppcre:scan pair-regex snail-num)))
-        (push (list pos (+ pos (length pair))) positions)
-        
-        ;; Extract and parse the numbers from each pair
+    (cl-ppcre:do-matches (start end pair-regex snail-num)
+      (push (list start end) positions)
+      
+      ;; Extract and parse the numbers from the pair
+      (let ((pair-str (subseq snail-num start end)))
         (cl-ppcre:register-groups-bind (left-num right-num)
-            ("(\\d+),(\\d+)" pair)
+            ("\\[(\\d+),(\\d+)\\]" pair-str)
           (push (list (parse-integer left-num)
                      (parse-integer right-num))
                 actual-pairs))))
@@ -40,7 +40,8 @@
                (#\[ (incf depth))
                (#\] (decf depth)))
           until (= i (first slice)))
-    depth))
+    ;; We don't count the opening bracket of the pair itself
+    (1- depth)))
 
 ;; Find next number in either direction
 (defun find-next (snail-num index offset left)
@@ -86,7 +87,7 @@
     (loop for slice in simple-nums
           for pair in pairs
           for depth = (find-depth snail-num slice)
-          when (>= depth 5)
+          when (>= depth 4)  ; Changed from 5 to 4 to match Go
           do (let ((left-num (first pair))
                   (right-num (second pair))
                   (offset-left 0)
@@ -131,6 +132,8 @@
                (return-from try-explode (values snail-num t))))
     (values snail-num nil)))
 
+(try-explode "[[6,[8,5]],[[2,[[0,2],4]],[1,[8,0]]]]")
+
 ;; Addition function
 (defun add-nums (left-num right-num)
   (format nil "[~a,~a]" left-num right-num))
@@ -172,26 +175,30 @@
 
 ;; Complete part one solution
 (defun solve-one ()
-  (let* ((lines (read-input t))
-         (result (first lines)))
-    (setf result (reduce-snail result))
+  "Solve day 18 part one"
+  (let* ((lines (read-input nil))
+         (l-num (first lines)))
+    (setf l-num (reduce-snail l-num))
     (loop for line in (rest lines)
-          do (setf result (reduce-snail (add-nums result line))))
-    (magnitude result)))
+          do 
+          (setf l-num (add-nums l-num line))
+          (setf l-num (reduce-snail l-num)))
+    (magnitude l-num)))
 
 (solve-one)
 
 ;; Part two solution
-(defun solve-part-two ()
-  (let* ((lines (read-input t))
+(defun solve-two ()
+  (let* ((lines (read-input nil))
          (max-magnitude 0))
     (loop for i from 0 below (length lines)
           do (loop for j from 0 below (length lines)
-                   when (/= i j)
+                   when (/= i j)  ; you could change this to (> j i) to match Go version
                    do (let* ((sum (reduce-snail 
-                                  (add-nums (nth i lines) 
-                                          (nth j lines))))
-                           (mag (magnitude sum)))
+                                  (add-nums (nth i lines) (nth j lines))))
+                            (mag (magnitude sum)))
                         (when (> mag max-magnitude)
                           (setf max-magnitude mag)))))
     max-magnitude))
+
+(solve-two)
