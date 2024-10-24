@@ -1,27 +1,12 @@
-(ql:quickload "cl-ppcre")
-
-(defun read-input (is-test)
-  (let* ((input-file (if is-test "test-input.txt" "input.txt"))
-         (path (merge-pathnames input-file #P"~/code/challenges/aoc/2021/lisp/19/"))
-         (lines '()))
-    (with-open-file (stream path :direction :input)
-        (loop for line = (read-line stream nil)
-            while line do 
-            (push line lines)))
-    (reverse lines)))
-
-(read-input t)
-
 (defstruct (scanner (:constructor make-scanner (&key name beacons)))
   (name "" :type string)
   (beacons nil :type list))
 
 (defstruct (vector3d (:constructor make-vector3d (x y z))
-                    (:print-function print-vector3d))
+                     (:print-function print-vector3d))
   (x 0 :type integer)
   (y 0 :type integer)
   (z 0 :type integer))
-
 
 ;; Custom print function for vector3d
 (defun print-vector3d (vec stream depth)
@@ -104,9 +89,22 @@
        (= (vector3d-y vec1) (vector3d-y vec2))
        (= (vector3d-z vec1) (vector3d-z vec2))))
 
+(defun abs-vector (vec)
+  "Return a new vector with the absolute values of the original vector's components."
+  (make-vector3d
+   (abs (vector3d-x vec))
+   (abs (vector3d-y vec))
+   (abs (vector3d-z vec))))
+
+(defun get-vector-key (vec)
+  "Generate a key based on the sorted absolute values of the vector's components."
+  (sort (list (abs (vector3d-x vec))
+              (abs (vector3d-y vec))
+              (abs (vector3d-z vec)))
+        #'<))
 
 (defstruct beacon3d 
-  (position (make-vector3d) :type vector3d)
+  (position nil :type vector3d)
   (edges (make-hash-table :test #'equal)))
 
 
@@ -119,13 +117,16 @@
 
 (defun add-edge (a b)
   (let* ((edge (vector3d-subtract (beacon3d-position a) (beacon3d-position b)))
-         (key (get-vector-key edge)))
-    (push edge (gethash key (beacon3d-edges a)))))
+         (key (get-vector-key edge))
+         (edges (gethash key (beacon3d-edges a))))
+    (push edge edges)
+    (setf (gethash key (beacon3d-edges a)) edges)))
+
 
 (defun find-edge (beacon edge)
-  (let ((edge-str (get-vector-key edge)))
-    (values (gethash edge-str (beacon3d-edges beacon))
-            (not (null (gethash edge-str (beacon3d-edges beacon)))))))
+  (let ((edge-key (get-vector-key edge)))
+    (values (gethash edge-key (beacon3d-edges beacon))
+            (not (null (gethash edge-key (beacon3d-edges beacon)))))))
 
 (defun parse-scanners (data)
   (let ((scanners nil)
@@ -196,19 +197,19 @@
            (when (and found (= (length alt-edges) 1))
              (let ((alt-edge (first alt-edges))
                    (axes (vector (vector3d-x edge)
-                               (vector3d-y edge)
-                               (vector3d-z edge)))
+                                 (vector3d-y edge)
+                                 (vector3d-z edge)))
                    (alt-axes (vector (vector3d-x alt-edge)
-                                   (vector3d-y alt-edge)
-                                   (vector3d-z alt-edge))))
+                                     (vector3d-y alt-edge)
+                                     (vector3d-z alt-edge))))
                (setf order (make-array 3))
                (dotimes (i 3)
                  (dotimes (j 3)
                    (when (= (abs (aref axes i))
-                          (abs (aref alt-axes j)))
+                            (abs (aref alt-axes j)))
                      (setf (aref order i) j))))
                (setf signs (vector3d-divide edge
-                                          (align alt-edge order signs)))
+                                            (align alt-edge order signs)))
                (return-from get-orientation-diff 
                  (values signs order)))))))
      (beacon3d-edges beacon-a))
@@ -216,12 +217,12 @@
 
 (defun align (vec order signs)
   (let* ((arr (vector (vector3d-x vec)
-                     (vector3d-y vec)
-                     (vector3d-z vec)))
+                      (vector3d-y vec)
+                      (vector3d-z vec)))
          (new-vec (make-vector3d
-                  :x (aref arr (aref order 0))
-                  :y (aref arr (aref order 1))
-                  :z (aref arr (aref order 2)))))
+                   (aref arr (aref order 0))
+                   (aref arr (aref order 1))
+                   (aref arr (aref order 2)))))
     (when signs
       (setf new-vec (vector3d-multiply new-vec signs)))
     new-vec))
@@ -242,7 +243,7 @@
           (when (shares-at-least-n-edges a b (1- min-shared-beacons))
             (incf shared)
             (setf unmatched (append (subseq unmatched 0 i)
-                                  (subseq unmatched (1+ i)))
+                                    (subseq unmatched (1+ i)))
                   self-beacon a
                   alt-beacon b)
             (return)))))
@@ -255,17 +256,27 @@
             (let* ((aligned (align (beacon3d-position b) order signs))
                    (diff (vector3d-subtract aligned alt))
                    (new-position (vector3d-add (beacon3d-position self-beacon) 
-                                             diff)))
+                                               diff)))
               (push (make-beacon3d :position new-position) new-beacons)))
           (setf scanner-position 
                 (vector3d-subtract (beacon3d-position self-beacon) alt)))))
     
     (values new-beacons shared scanner-position)))
 
+(defun add-beacons (scanner new-beacons)
+  (setf (scanner-beacons scanner)
+        (append (scanner-beacons scanner) new-beacons))
+  (dolist (a new-beacons)
+    (setf (beacon3d-edges a) (make-hash-table :test #'equal))
+    (dolist (b (scanner-beacons scanner))
+      (unless (eq a b)
+        (add-edge a b)
+        (add-edge b a)))))
+
 (defun merge-scanners (content &key (min-shared-beacons 12))
   (let* ((scanners (parse-scanners content))
          (composite (first scanners))
-         (relative-positions (list (make-vector3d)))
+         (relative-positions (list (make-vector3d 0 0 0)))
          (queue (rest scanners))
          last-scanner)
     
@@ -287,26 +298,26 @@
     
     (values composite (nreverse relative-positions))))
 
-(defun add-beacons (scanner new-beacons)
-  (setf (scanner-beacons scanner)
-        (append (scanner-beacons scanner) new-beacons))
-  (dolist (a new-beacons)
-    (setf (beacon3d-edges a) (make-hash-table :test #'equal))
-    (dolist (b (scanner-beacons scanner))
-      (unless (eq a b)
-        (add-edge a b)
-        (add-edge b a)))))
-
 (defun manhattan-distance (a b)
   (+ (abs (- (vector3d-x a) (vector3d-x b)))
      (abs (- (vector3d-y a) (vector3d-y b)))
      (abs (- (vector3d-z a) (vector3d-z b)))))
 
 (defun solve-one ()
-  "Solve day 19 parte one"
+  "Solve day 19 part one"
   (multiple-value-bind (composite positions)
       (merge-scanners (read-input t))
     (length (scanner-beacons composite))))
+
+(defun read-input (is-test)
+  (let* ((input-file (if is-test "test-input.txt" "input.txt"))
+         (path (merge-pathnames input-file #P"~/code/challenges/aoc/2021/lisp/19/"))
+         (lines '()))
+    (with-open-file (stream path :direction :input)
+      (loop for line = (read-line stream nil)
+            while line do 
+              (push line lines)))
+    (reverse lines)))
 
 (solve-one)
 
