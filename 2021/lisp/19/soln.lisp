@@ -1,3 +1,13 @@
+(defun read-input (is-test)
+  (let* ((input-file (if is-test "test-input.txt" "input.txt"))
+         (path (merge-pathnames input-file #P"~/code/challenges/aoc/2021/lisp/19/"))
+         (lines '()))
+    (with-open-file (stream path :direction :input)
+      (loop for line = (read-line stream nil)
+            while line do 
+              (push line lines)))
+    (reverse lines)))
+
 (defstruct (scanner (:constructor make-scanner (&key name beacons)))
   (name "" :type string)
   (beacons nil :type list))
@@ -187,7 +197,8 @@
     nil))
 
 (defun get-orientation-diff (beacon-a beacon-b)
-  (let (signs order)
+  (let ((signs nil)
+        (order (make-array 3 :initial-element nil)))  ; Initialize order with nil
     (maphash
      (lambda (key edges)
        (declare (ignore key))
@@ -195,25 +206,28 @@
          (multiple-value-bind (alt-edges found)
              (find-edge beacon-b edge)
            (when (and found (= (length alt-edges) 1))
-             (let ((alt-edge (first alt-edges))
-                   (axes (vector (vector3d-x edge)
-                                 (vector3d-y edge)
-                                 (vector3d-z edge)))
-                   (alt-axes (vector (vector3d-x alt-edge)
-                                     (vector3d-y alt-edge)
-                                     (vector3d-z alt-edge))))
-               (setf order (make-array 3))
+             (let* ((alt-edge (first alt-edges))
+                    (axes (vector (vector3d-x edge)
+                                  (vector3d-y edge)
+                                  (vector3d-z edge)))
+                    (alt-axes (vector (vector3d-x alt-edge)
+                                      (vector3d-y alt-edge)
+                                      (vector3d-z alt-edge))))
+               (setf order (make-array 3 :initial-element nil))
                (dotimes (i 3)
                  (dotimes (j 3)
                    (when (= (abs (aref axes i))
                             (abs (aref alt-axes j)))
                      (setf (aref order i) j))))
-               (setf signs (vector3d-divide edge
-                                            (align alt-edge order signs)))
-               (return-from get-orientation-diff 
-                 (values signs order)))))))
+               ;; Check if 'order' is fully populated
+               (when (every #'numberp order)
+                 (setf signs (vector3d-divide edge
+                                              (align alt-edge order nil)))
+                 (return-from get-orientation-diff 
+                   (values signs order))))))))
      (beacon3d-edges beacon-a))
     (values nil nil)))
+
 
 (defun align (vec order signs)
   (let* ((arr (vector (vector3d-x vec)
@@ -251,15 +265,19 @@
     (when (>= shared min-shared-beacons)
       (multiple-value-bind (signs order)
           (get-orientation-diff self-beacon alt-beacon)
-        (let ((alt (align (beacon3d-position alt-beacon) order signs)))
-          (dolist (b unmatched)
-            (let* ((aligned (align (beacon3d-position b) order signs))
-                   (diff (vector3d-subtract aligned alt))
-                   (new-position (vector3d-add (beacon3d-position self-beacon) 
-                                               diff)))
-              (push (make-beacon3d :position new-position) new-beacons)))
-          (setf scanner-position 
-                (vector3d-subtract (beacon3d-position self-beacon) alt)))))
+        ;; Add a check to ensure signs and order are not nil
+        (if (and signs order)
+            (let ((alt (align (beacon3d-position alt-beacon) order signs)))
+              (dolist (b unmatched)
+                (let* ((aligned (align (beacon3d-position b) order signs))
+                       (diff (vector3d-subtract aligned alt))
+                       (new-position (vector3d-add (beacon3d-position self-beacon) 
+                                                   diff)))
+                  (push (make-beacon3d :position new-position) new-beacons)))
+              (setf scanner-position 
+                    (vector3d-subtract (beacon3d-position self-beacon) alt)))
+            ;; If signs or order are nil, set shared to 0 to indicate failure
+            (setf shared 0))))
     
     (values new-beacons shared scanner-position)))
 
@@ -306,28 +324,20 @@
 (defun solve-one ()
   "Solve day 19 part one"
   (multiple-value-bind (composite positions)
-      (merge-scanners (read-input t))
+      (merge-scanners (read-input nil))
     (length (scanner-beacons composite))))
-
-(defun read-input (is-test)
-  (let* ((input-file (if is-test "test-input.txt" "input.txt"))
-         (path (merge-pathnames input-file #P"~/code/challenges/aoc/2021/lisp/19/"))
-         (lines '()))
-    (with-open-file (stream path :direction :input)
-      (loop for line = (read-line stream nil)
-            while line do 
-              (push line lines)))
-    (reverse lines)))
 
 (solve-one)
 
-(defun solve-two (is-test)
+(defun solve-two ()
   "Solve day 19 part two"
   (multiple-value-bind (composite positions)
-      (merge-scanners (read-input is-test))
+      (merge-scanners (read-input nil))
     (let ((max-distance 0))
       (dolist (a positions)
         (dolist (b positions)
           (setf max-distance 
                 (max max-distance (manhattan-distance a b)))))
       max-distance)))
+
+(solve-two)
