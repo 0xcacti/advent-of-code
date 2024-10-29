@@ -41,6 +41,22 @@
       (subseq room 0 2)
       room))
 
+(defun should-move-from-room-p (burrow amphipod room-slots)
+  "Determine if an amphipod should move from its current room."
+  (some (lambda (r)
+          (let ((char (aref burrow (loc r))))
+            (and (valid-amphipod-p char)
+                 (char/= char amphipod))))
+        room-slots))
+
+(defun room-ready-p (burrow amphipod room-slots)
+  "Check if a room is ready to receive its designated amphipod."
+  (every (lambda (r)
+           (let ((char (aref burrow (loc r))))
+             (or (char= char #\.)
+                 (char= char amphipod))))
+         room-slots))
+
 (defun move-to-hallway (burrow a)
   "Generate all possible moves from a room position `a` to valid hallway positions."
   (let ((results '())
@@ -51,100 +67,84 @@
              (room-x (first (first room)))
              (room-slots (get-room-slots burrow room))
              (movable (or (not (equal (first a) room-x))
-                          (some (lambda (r)
-                                  (let ((char (aref burrow (loc r))))
-                                    (and (valid-amphipod-p char)
-                                         (char/= char amphipod))))
-                                room-slots))))
+                         (should-move-from-room-p burrow amphipod room-slots))))
         (when movable
-          ;; Generate valid hallway moves
-          (dolist (h *hallway* reachable)
-            (if (< (first h) (first a))
-                (if (empty-p burrow h)
-                    (push h reachable)
-                    (setf reachable nil))
-                (when (empty-p burrow h)
-                  (push h reachable))))
-          ;; Calculate energy for each move to hallway
+          (dolist (h *hallway*)
+            (let ((path-clear t))
+              (if (< (first h) (first a))
+                  (loop for x from (1+ (first h)) to (1- (first a))
+                        do (unless (empty-p burrow (list x 1))
+                             (setf path-clear nil)))
+                  (loop for x from (1+ (first a)) to (1- (first h))
+                        do (unless (empty-p burrow (list x 1))
+                             (setf path-clear nil))))
+              (when (and path-clear (empty-p burrow h))
+                (push h reachable))))
           (dolist (n reachable)
             (let* ((next (concatenate 'string 
-                                      (subseq burrow 0 (loc n))
-                                      (string amphipod)
-                                      (subseq burrow (1+ (loc n)) (loc a))
-                                      "."
-                                      (subseq burrow (1+ (loc a)))))
+                                    (subseq burrow 0 (loc n))
+                                    (string amphipod)
+                                    (subseq burrow (1+ (loc n)) (loc a))
+                                    "."
+                                    (subseq burrow (1+ (loc a)))))
                    (energy (* (+ (abs (- (first a) (first n)))
-                                 (abs (- (second a) (second n))))
-                              (cdr (assoc amphipod *amphipod-consumption*)))))
+                                (abs (- (second a) (second n))))
+                             (cdr (assoc amphipod *amphipod-consumption*)))))
               (push (make-move-step :burrow next :energy energy) results))))))
     results))
 
 (defun move-to-room (burrow a)
   "Moves amphipod to its designated room if reachable and room is valid."
   (let ((results '())
-        (reachable t)
         (amphipod (aref burrow (loc a))))
     (when (valid-amphipod-p amphipod)
       (let* ((room (cdr (assoc amphipod *amphipod-room*)))
-             (room-x (first (first room))))
+             (room-x (first (first room)))
+             (room-slots (get-room-slots burrow room))
+             (path-clear t))
+        
+        ;; Check if path to room is clear
         (if (< (first a) room-x)
-            (dolist (h *hallway*)
-              (when (and (> (first h) (first a))
-                         (< (first h) room-x))
-                (unless (empty-p burrow h)
-                  (setf reachable nil))))
-            (dolist (h *hallway*)
-              (when (and (< (first h) (first a))
-                         (>= (first h) room-x))
-                (unless (empty-p burrow h)
-                  (setf reachable nil)))))
-        (when reachable
-          (let ((slots (get-room-slots burrow room)))
-            (dolist (r slots)
-              (let ((char (aref burrow (loc r))))
-                (when (and (valid-amphipod-p char)
-                           (char/= char amphipod))
-                  (setf reachable nil))))))
-        (when reachable
-          (let ((slots (get-room-slots burrow room)))
-            (dolist (r (reverse slots))
-              (when (empty-p burrow r)
-                (let* ((next (concatenate 'string
-                                          (subseq burrow 0 (loc a))
-                                          "."
-                                          (subseq burrow (1+ (loc a)) (loc r))
-                                          (string amphipod)
-                                          (subseq burrow (1+ (loc r)))))
-                       (energy (* (+ (abs (- (first a) (first r)))
-                                     (abs (- (second a) (second r))))
-                                  (cdr (assoc amphipod *amphipod-consumption*)))))
-                  (push (make-move-step :burrow next :energy energy) results)
-                  (return))))))))
+            (loop for x from (1+ (first a)) to (1- room-x)
+                  do (unless (empty-p burrow (list x 1))
+                       (setf path-clear nil)))
+            (loop for x from (1+ room-x) to (1- (first a))
+                  do (unless (empty-p burrow (list x 1))
+                       (setf path-clear nil))))
+        
+        (when (and path-clear (room-ready-p burrow amphipod room-slots))
+          ;; Find deepest available slot
+          (let ((target-slot (find-if #'(lambda (r) (empty-p burrow r))
+                                     (reverse room-slots))))
+            (when target-slot
+              (let* ((next (concatenate 'string
+                                      (subseq burrow 0 (loc a))
+                                      "."
+                                      (subseq burrow (1+ (loc a)) (loc target-slot))
+                                      (string amphipod)
+                                      (subseq burrow (1+ (loc target-slot)))))
+                     (energy (* (+ (abs (- (first a) (first target-slot)))
+                                 (abs (- (second a) (second target-slot))))
+                              (cdr (assoc amphipod *amphipod-consumption*)))))
+                (push (make-move-step :burrow next :energy energy) results)))))))
     results))
-
-
-(defun get-room-slots (burrow room)
-  "Adjusts the room slots based on folded or unfolded layout."
-  (if (folded-p burrow)
-      (subseq room 0 2)  ; If folded, only consider top 2 slots.
-      room))             ; For unfolded layout, use all 4 slots.
 
 (defun move (burrow)
   "Generates all valid next states by moving amphipods from rooms to hallway or hallway to rooms."
   (let ((nexts '()))
-    ;; Move amphipods from rooms to hallway
+    ;; Try room to hallway moves first
     (dolist (room *rooms*)
       (let ((slots (get-room-slots burrow room)))
-        (dolist (n slots)
-          (unless (empty-p burrow n)
-            (setf nexts (append nexts (move-to-hallway burrow n)))
+        (dolist (slot slots)
+          (unless (empty-p burrow slot)
+            (setf nexts (append nexts (move-to-hallway burrow slot)))
             (return)))))
-    ;; Move amphipods from hallway to rooms
+    
+    ;; Then try hallway to room moves
     (dolist (h *hallway*)
       (unless (empty-p burrow h)
         (setf nexts (append nexts (move-to-room burrow h)))))
     nexts))
-
 
 (defun organize (input target)
   (let* ((start (parse-input input))
@@ -157,20 +157,11 @@
                  (let ((next-burrow (move-step-burrow move-step))
                        (energy (+ (gethash burrow *memo*)
                                 (move-step-energy move-step))))
-                   (if (or (not (gethash next-burrow *memo*))
-                           (< energy (gethash next-burrow *memo*)))
-                       (progn
-                         (setf (gethash next-burrow *memo*) energy)
-                         (push next-burrow queue)))))))
+                   (when (or (not (gethash next-burrow *memo*))
+                            (< energy (gethash next-burrow *memo*)))
+                     (setf (gethash next-burrow *memo*) energy)
+                     (push next-burrow queue))))))
     (gethash (parse-input target) *memo*)))
-
-(defun solve-part-a (input)
-  (organize input
-           '("#############"
-             "#...........#"
-             "###A#B#C#D###"
-             "  #A#B#C#D#  "
-             "  #########")))
 
 (defun solve-part-b (input)
   (let ((unfolded-input (list (first input)
@@ -188,6 +179,16 @@
                "  #A#B#C#D#  "
                "  #A#B#C#D#  "
                "  #########"))))
+
+
+(defun solve-part-a (input)
+  (organize input
+           '("#############"
+             "#...........#"
+             "###A#B#C#D###"
+             "  #A#B#C#D#  "
+             "  #########")))
+
 
 (format t "~A~%" 
         (solve-part-a '("#############"
@@ -210,3 +211,4 @@
                        "###B#D#C#A###"
                        "  #C#D#B#A#  "
                        "  #########")))
+
