@@ -12,3 +12,7 @@ I am familiar with.  As such, I did 2021 in
 common lisp.  
 
 
+## Years Complete: 
+- [x] 2021
+- [x] 2023
+- [ ] 2024
