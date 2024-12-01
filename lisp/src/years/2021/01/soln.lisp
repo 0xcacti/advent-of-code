@@ -1,6 +1,6 @@
 (defparameter *inp* (make-array 0 :fill-pointer 0 :adjustable t))
 
-(with-open-file (stream "~/code/challenges/aoc/2021/lisp/1/input.txt" :direction :input)
+(with-open-file (stream "~/code/challenges/aoc/lisp/src/years/2021/01/input.txt" :direction :input)
   (loop for line = (read-line stream nil)
         while line do 
         (vector-push-extend (parse-integer line) *inp*)))

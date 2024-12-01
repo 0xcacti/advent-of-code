@@ -19,18 +19,6 @@
                 (vector-push-extend (parse-integer (second parts)) right))))
       (values left right))))
 
-
-(defun test-input ()
-        (format t "Testing normal input:~%")
-        (with-input (path :test nil)
-              (format t "Path: ~A~%" path))
-        
-        (format t "~%Testing test input:~%")
-        (with-input (path :test t)
-              (format t "Path: ~A~%" path)))
-
-(test-input)
-
 (defun part-one () 
   "Solve day one, part one"
   (multiple-value-bind (left right) (read-input t) 
