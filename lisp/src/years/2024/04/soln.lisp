@@ -61,38 +61,51 @@
 (solve-one)
 
 (defun directions-two ()
-  '('((-1 -1) (1 1)) '((-1 1) (1 -1))))
+  '(((-1 -1) (1 1)) ((-1 1) (1 -1))))
 
-(defun bfs-two (word-search word r c) 
+(defun bfs-two (word-search r c) 
   (let ((total-matches 0))
   (loop for r from 0 below (length word-search) do
     (loop for c from 0 below (length (first word-search)) do
       (when (char= (nth c (nth r word-search)) #\A)
         (let ((found-word t))
-        (loop for diag in (directions-two) do 
-            (loop for dir in diag do 
+        (loop for diag-pairs in (directions-two) do 
+            (let ((diag-one (first diag-pairs))
+                  (diag-two (second diag-pairs)))
             (unless 
-                (in-bounds (+ r (first dir))
+                (in-bounds (+ r (first diag-one))
                            0 
                            (length word-search) 
-                           (+ c (second dir))
+                           (+ c (second diag-one))
                            0 
                            (length (first word-search)))
-              (setf found-word nil))
-            ;; if ((char= pos m) and (char= pos s)) or ((char= pos s) and (char= pos m))
-            (unless (or 
-                      (and 
-                       (char= (nth (+ c (second dir) (nth (+ r (first dir) #\M)
-                       (char= (nth (+ r (first dir) #\M)
-                             (nth (+ r (* i (first dir))) word-search))
-                           (nth i word))
               (setf found-word nil)
+              (return nil))
+            (unless 
+                (in-bounds (+ r (first diag-two))
+                           0 
+                           (length word-search) 
+                           (+ c (second diag-two))
+                           0 
+                           (length (first word-search)))
+              (setf found-word nil)
+              (return nil))
+            ;; if ((char= pos m) and (char= pos s)) or ((char= pos s) and (char= pos m))
+              (unless (or 
+                  (and 
+                   (char= (nth (+ c (second diag-one)) (nth (+ r (first diag-one)) word-search)) #\M)
+                   (char= (nth (+ c (second diag-two)) (nth (+ r (first diag-two)) word-search)) #\S))
+                  (and
+                   (char= (nth (+ c (second diag-one)) (nth (+ r (first diag-one)) word-search)) #\S)
+                   (char= (nth (+ c (second diag-two)) (nth (+ r (first diag-two)) word-search)) #\M)))
+                  (setf found-word nil)
               (return nil)))
             (when found-word (incf total-matches)))))))
     total-matches))
 
 (defun solve-two ()
   "Solve day four, part two"
-  )
+  (let ((word-search (read-input nil)))
+    (bfs-two word-search 0 0)))
 
 (solve-two)
