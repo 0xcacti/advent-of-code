@@ -32,7 +32,6 @@
                     (vector-push-extend "." storage)))))
     storage))
 
-
 (defun swap-elements (storage p1 p2)
   (let ((temp (aref storage p1)))
     (setf (aref storage p1) (aref storage p2))
@@ -50,7 +49,6 @@
         (when (< p1 p2)
           (setf storage (swap-elements storage p1 p2))))
   storage))
-
 
 (defun count-up (storage)
   (let ((count 0)
@@ -73,57 +71,89 @@
 (solve-one)
 
 
-(defun find-next-block-lens (storage p1 p2)
-  (let* ((p3 p1)
-        (p4 p2)
-        (c (aref storage p4)))
-    (loop while (equal (aref storage p3) ".") do 
-      (incf p3))
-    (loop while (and 
-                  (not (equal (aref storage p4) ".")) 
-                  (equal (aref storage p4) c)) do 
-      (decf p4))
-    (values (- p3 p1) (- p2 p4))))
+(defun find-all-blocks (storage) 
+  (let ((i 0)
+        (blocks 0))
+  (loop while (< i (length storage)) do
+        (if (not (equal (aref storage i) "."))
+          (let ((c (aref storage i)))
+            (incf blocks)
+            (loop while (equal (aref storage i) c) do 
+              (incf i)))
+          (incf i)
+          ))
+  blocks))
 
-(defun block-remap (storage)
+
+(defun count-consecutive (storage start id)
+  (let ((count 0)
+        (pos start))
+    (loop while (and (< pos (length storage))
+                     (equal (aref storage pos) (write-to-string id)))
+          do
+          (incf count)
+          (incf pos))
+    count))
+
+(defun count-consecutive-dots (storage start)
+  (let ((count 0)
+        (pos start))
+    (loop while (and (< pos (length storage))
+                     (equal (aref storage pos) "."))
+          do
+          (incf count)
+          (incf pos))
+    count))
+
+(defun move-file (storage start len target)
+  (let ((file-contents (make-array len)))
+    (loop for i from 0 below len do
+          (setf (aref file-contents i) (aref storage (+ start i))))
+    (loop for i from 0 below len do
+          (setf (aref storage (+ start i)) "."))
+    (loop for i from 0 below len do
+          (setf (aref storage (+ target i)) (aref file-contents i)))
+    storage))
+
+(defun block-remap (storage blocks)
   (let ((p1 0)
         (p2 (1- (length storage)))
         (counter  0))
-    (format t "entering block remap~%")
-    (loop while (and (< p1 p2) (< counter 8)) do 
-        (loop while (not (equal (aref storage p1) ".")) do 
-          (incf p1))
-        (loop while (equal (aref storage p2) ".") do 
-          (decf p2))
-        (format t "p1: ~a p2: ~a~%" p1 p2)
-        (multiple-value-bind (len1 len2) (find-next-block-lens storage p1 p2)
+    (loop for current-id from (1- blocks) downto 0 do 
+          (multiple-value-bind (start len) (find-file-position storage current-id)
+            (when start 
+              (let ((target-pos (find-leftmost-space storage len)))
+                (when (and target-pos (< target-pos start))
+                  (move-file storage start len target-pos))))))
+  storage))
 
-          (format t "len1: ~a len2: ~a~%" len1 len2)
-          (if (<= len2 len1)
-            (progn 
-            (loop for i from 0 below len2 do 
-                (setf storage (swap-elements storage (+ p1 i) (- p2 i))))
-            (setf p1 (+ p1 len1))
-            (setf p2 (- p2 len2)))
-            (progn
-              (setf p2 (- p2 len2)))))
-        (incf counter)
-        (setf p1 0))
-    storage))
+(defun find-file-position (storage id)
+  (let ((pos 0))
+    (loop while (< pos (length storage)) do
+      (when (equal (aref storage pos) (write-to-string id))
+        (let ((len (count-consecutive storage pos id)))
+          (return-from find-file-position (values pos len))))
+      (incf pos))
+    (values nil nil)))
 
-
-00...111...2...333.44.5555.6666.777.888899
+(defun find-leftmost-space (storage needed-len)
+  (let ((pos 0))
+    (loop while (< pos (length storage)) do
+      (when (equal (aref storage pos) ".")
+        (let ((space-len (count-consecutive-dots storage pos)))
+          (when (>= space-len needed-len)
+            (return-from find-leftmost-space pos))))
+      (incf pos))
+    nil))
 
 (defun solve-two () 
   "Solve part two day 9"
-  (let* ((elements (read-input t))
+  (let* ((elements (read-input nil))
          (storage (make-storage-map elements))
-         (remapped (block-remap storage)))
-    (format t "Storage: ~a~%" storage)
-    (format t "Result: ~a~%" remapped)))
+         (blocks (find-all-blocks storage))
+         (remapped (block-remap storage blocks))
+         (result (count-up remapped))
+         )
+    (format t "Result: ~a~%" result)))
 
 (solve-two)
-
-0099.111777244....333.5555.6666.....8888..
-00992111777.44.333....5555.6666.....8888..
-
