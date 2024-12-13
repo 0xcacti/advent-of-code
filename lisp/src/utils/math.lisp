@@ -10,7 +10,6 @@
 
 (defun neighbors-8 (x y) 
   "Return the 8 neighbors of a point"
-  (defun neighbors-8 (x y)
   (loop :for dx :in '(-1 0 1)
         :append (loop :for dy :in '(-1 0 1)
                      :unless (and (zerop dx) (zerop dy))
