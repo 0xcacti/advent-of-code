@@ -89,10 +89,10 @@
       (loop for b in v do 
         (when (not (equal a b))
                   (is-inline a b pos) 
-                  (double-distance pos a b))  
+                  (double-distance pos a b))  ; Debug print
           (when (and (is-inline a b pos)
                      (double-distance pos a b))
-            (return-from find-anti-nodes t)))))) 
+            (return-from find-anti-nodes t))))) 
     nodes)
   nil)
 
@@ -102,12 +102,35 @@
   (let* ((nodes (read-input nil))
          (antinode-count 0)
          (antennas (find-antennas nodes)))
-    (print-antennas antennas)
-    (loop for i from 0 to (array-dimension nodes 0) do 
-      (loop for j from 0 to (array-dimension nodes 1) do 
+    (loop for i from 0 below (array-dimension nodes 0) do 
+      (loop for j from 0 below (array-dimension nodes 1) do 
         (let ((pos (list i j)))
           (when (find-anti-nodes pos antennas)
             (incf antinode-count)))))
     antinode-count))
 
 (solve-one)
+
+(defun find-anti-nodes-p-2 (pos nodes)
+  (maphash (lambda (k v) 
+    (loop for a in v do 
+      (loop for b in v do 
+        (when (and (not (equal a b))
+                   (is-inline a b pos))
+            (return-from find-anti-nodes-p-2 t)))))
+    nodes)
+  nil)
+
+(defun solve-two ()
+  "Solve part two day 8"
+  (let* ((nodes (read-input nil))
+         (antinode-count 0)
+         (antennas (find-antennas nodes)))
+    (loop for i from 0 below (array-dimension nodes 0) do 
+      (loop for j from 0 below (array-dimension nodes 1) do 
+        (let ((pos (list i j)))
+          (when (find-anti-nodes-p-2 pos antennas)
+            (incf antinode-count)))))
+    antinode-count))
+
+(solve-two)
