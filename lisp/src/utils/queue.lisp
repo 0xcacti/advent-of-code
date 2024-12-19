@@ -1,3 +1,5 @@
+(in-package :advent-of-code/utils)
+
 (defstruct queue
   (elements nil :type  list)
   (head 0 :type fixnum)
