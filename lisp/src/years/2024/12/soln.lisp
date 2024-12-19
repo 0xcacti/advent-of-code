@@ -27,7 +27,8 @@
          (rows (length grid))
          (cols (length (aref grid 0)))
          (seen (make-hash-table :test 'equal))
-         (regions '()))
+         (regions '())
+         (q (make-queue)))
 
     (loop for r from 0 below rows do
       (loop for c from 0 below cols do 
@@ -41,7 +42,6 @@
 
         (if (gethash (list r c) seen)
             (continue)
-            (
 
     (format t "rows: ~a, cols: ~a~%" rows cols)))
 

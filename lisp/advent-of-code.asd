@@ -11,4 +11,5 @@
         :components ((:file "package")
         (:file "common" :depends-on ("package"))
         (:file "math" :depends-on ("package"))
+        (:file "queue" :depends-on ("package"))
         ))))))
