@@ -9,15 +9,24 @@
 
 (defun read-input (is-test)
     (with-input (path :test is-test)
-      (let ((grid (make-array 0 :adjustable t :fill-pointer 0)))
+      (let ((a-btns '())
+            (b-btns '())
+            (destinations '())))
       (with-open-file (stream path :direction :input)
             (loop for line = (read-line stream nil)
               for i from 0 
               while line do
-              (let ((parts (cl-ppcre:split "" line)))
-                (vector-push-extend parts grid))))
-        grid)))
+              (cond 
+              (setf str-puz (concatenate 'string str-puz line))))
+        (format t "Read input: ~A~%" str-puz))))
+
+
 
 (read-input t)
+
+(defun solve-one ()
+  "Solve part one day 13"
+
+  )
 
 
