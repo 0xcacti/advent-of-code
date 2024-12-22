@@ -155,6 +155,7 @@
 
 
 (defun solve-two ()
+
   "Solve part 2 by finding all positions that create loops"
   (let* ((original-map (read-input nil))
          (start-pos (find-start original-map))

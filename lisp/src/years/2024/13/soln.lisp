@@ -55,11 +55,68 @@
             (read-line stream nil)))
         (nreverse machines)))))
 
+(defun find-shortest () )
+
 (defun solve-one ()
   "Solve part one day 13"
-  (let ((machines (read-input t)))
-    ;; Add solution logic here
-    machines))
+  (let ((machines (read-input nil))
+        (total-tokens 0))
+    (loop for machine in machines do 
+      (let ((min-tokens most-positive-double-float)
+            (solution-found nil))
+        (loop for a from 0 to 100 do 
+          (loop for b from 0 to 100 do 
+            (let* ((x-pos (+ (* a (machine-a-btn-x machine)) 
+                            (* b (machine-b-btn-x machine))))
+                   (y-pos (+ (* a (machine-a-btn-y machine)) 
+                            (* b (machine-b-btn-y machine)))))
+              ;; Only process if both X and Y match
+              (when (and (= x-pos (machine-prize-x machine))
+                        (= y-pos (machine-prize-y machine)))
+                (let ((tokens (+ (* a 3) b)))
+                  (format t "Found solution for machine:~%X=~A Y=~A~%A=~A B=~A Tokens=~A~%" 
+                          x-pos y-pos a b tokens)
+                  (setf min-tokens (min min-tokens tokens))
+                  (setf solution-found t))))))
+        (when solution-found
+          (format t "Adding tokens: ~A~%" min-tokens)
+          (incf total-tokens min-tokens))))
+    total-tokens))
 
 (solve-one)
 
+
+(defun solve-two ()
+  "Solve part two day 13"
+  (let ((machines (read-input nil))
+        (increment-amt 10000000000000)
+        (total-tokens 0))
+    
+    (loop for machine in machines do
+      (incf (machine-prize-x machine) increment-amt)
+      (incf (machine-prize-y machine) increment-amt)
+      
+      (let* ((ax (machine-a-btn-x machine))
+             (ay (machine-a-btn-y machine))
+             (bx (machine-b-btn-x machine))
+             (by (machine-b-btn-y machine))
+             (px (machine-prize-x machine))
+             (py (machine-prize-y machine))
+             (ca (/ (- (* px by) (* py bx))
+                   (- (* ax by) (* ay bx))))
+             (cb (/ (- px (* ax ca)) bx)))
+        
+        (when (and (zerop (mod ca 1))
+                  (zerop (mod cb 1))
+                  (plusp ca)  
+                  (plusp cb))
+          (let ((tokens (+ (* (floor ca) 3) 
+                          (floor cb))))
+            (format t "Found solution for machine: A=~A B=~A Tokens=~A~%" 
+                    (floor ca) (floor cb) tokens)
+            (incf total-tokens tokens)))))
+    
+    total-tokens))
+    
+
+(solve-two)
