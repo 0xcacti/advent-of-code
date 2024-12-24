@@ -70,4 +70,4 @@ for move in moves:
     i += 1
     print_grid(grid)
 # 
-# print(sum(100 * r + c for r in range(rows) for c in range(cols) if grid[r][c] == "["))
+

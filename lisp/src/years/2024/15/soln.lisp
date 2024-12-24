@@ -123,22 +123,18 @@
 
 (defun solve-two ()
   "Solve part two of day 15"
-  (multiple-value-bind (grid moves) (read-input t)
+  (multiple-value-bind (grid moves) (read-input nil)
     (setf grid (expand-grid grid))
     (let* ((pos (find-position grid))
            (r (first pos))
            (c (second pos))
            (rows (array-dimension grid 0))
            (cols (array-dimension grid 1))
-           (score 0)
-           (i 0))  ; Move score declaration up
-      (print-grid grid)
+           (score 0))  ; Move score declaration up
       (format t "rows: ~a, cols: ~a~%" rows cols)
       (format t "Initial position: ~a, ~a~%" r c)
 
       (loop for move across moves do 
-            (if (= i 1000)
-                (return-from solve-two))
             (let* ((dr (cond ((char= move #\^) -1)
                             ((char= move #\v) 1)
                             (t 0)))
@@ -148,11 +144,18 @@
                    (targets (list (list r c)))
                    (going t))
 
-              (loop for target in targets
-                    for (cr cc) = target
-                    for nr = (+ cr dr)
-                    for nc = (+ cc dc)
-                    do (unless (member (list nr nc) targets :test #'equal)
+              (let ((i 0))
+              (loop while t do
+                    (if (= i (length targets))
+                        (return))
+                    (let* ((target (nth i targets))
+                          (cr (first target))
+                          (cc (second target))
+                          (nr (+ cr dr))
+                          (nc (+ cc dc)))
+
+
+                    (unless (member (list nr nc) targets :test #'equal)
                          (let ((char (aref grid nr nc)))
                            (cond ((char= char #\#)
                                   (setf going nil)
@@ -167,6 +170,7 @@
                                         (append targets 
                                                 (list (list nr nc)
                                                       (list nr (1- nc))))))))))
+                    (incf i)))
 
               (when going
                 (let ((copy (make-array (array-dimensions grid))))
@@ -186,15 +190,12 @@
                                 (aref copy br bc)))
                   (setf r (+ r dr))
                   (setf c (+ c dc)))))
-            (incf i)
-            (print-grid grid)
             )
       ;; Only calculate score once at the very end
       (loop for row from 0 below rows do
             (loop for col from 0 below cols do
                   (when (char= (aref grid row col) #\[)
                     (incf score (+ (* 100 row) col)))))
-      (print-grid grid)
       (format t "Score: ~a~%" score))))
 
 (solve-two)
