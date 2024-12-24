@@ -6,7 +6,7 @@
   (tail 0 :type fixnum))
 
 (defun enqueue (queue element)
-  (push element (queue-elements queue))
+  (setf (queue-elements queue) (nconc (queue-elements queue) (list element)))
   (incf (queue-tail queue))
   queue)
 
