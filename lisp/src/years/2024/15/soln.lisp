@@ -41,75 +41,150 @@
         (values grid (cl-ppcre:regex-replace-all "\\n" bottom ""))))))
 
 (defun find-position (grid)
-  "Find the position of the robot (@) in the grid"
-  (loop for r below (array-dimension grid 0) do
-        (loop for c below (array-dimension grid 1)
-              when (char= (aref grid r c) #\@)
-                return (values r c))))
-
-(defun can-move-p (grid r c dr dc moves)
-  "Check if a move is valid for all pieces in the chain"
-  (let ((rows (array-dimension grid 0))
-        (cols (array-dimension grid 1)))
-    (loop for (curr-r . curr-c) in moves
-          for next-r = (+ curr-r dr)
-          for next-c = (+ curr-c dc)
-          never (or (< next-r 0) (>= next-r rows)
-                   (< next-c 0) (>= next-c cols)
-                   (char= (aref grid next-r next-c) #\#)
-                   (and (char= (aref grid next-r next-c) #\O)
-                        (not (member (cons next-r next-c) moves :test #'equal)))))))
-
-(defun move-pieces (grid moves dr dc)
-  "Move all pieces in the chain by the given delta"
-  (let ((pieces (reverse moves)))  ; Reverse to move from last to first
-    ;; Clear old positions
-    (loop for (r . c) in pieces do
-          (setf (aref grid r c) #\.))
-    
-    ;; Set new positions
-    (loop for (r . c) in pieces
-          for new-r = (+ r dr)
-          for new-c = (+ c dc)
-          for piece = (if (equal (first pieces) (cons r c)) #\@ #\O)
-          do (setf (aref grid new-r new-c) piece))))
-
-(defun get-direction (move-char)
-  "Convert move character to direction deltas"
-  (case move-char
-    (#\^ (list -1 0))
-    (#\v (list 1 0))
-    (#\< (list 0 -1))
-    (#\> (list 0 1))
-    (otherwise (list 0 0))))
+  (loop for i below (array-dimension grid 0)
+        thereis (loop for j below (array-dimension grid 1)
+                     when (char= (aref grid i j) #\@)
+                       return (list i j))))
 
 (defun solve-one ()
   "Solve part one of day 15"
   (multiple-value-bind (grid moves) (read-input nil)
-    ;; Process each move
-    (loop for move across moves
-          for (r c) = (multiple-value-list (find-position grid))
-          for (dr dc) = (get-direction move)
-          do
-             (let ((move-chain (list (cons r c))))
-               ;; Build chain of pieces to move
-               (loop for curr-pos = (car (last move-chain))
-                     for next-r = (+ (car curr-pos) dr)
-                     for next-c = (+ (cdr curr-pos) dc)
-                     while (and (>= next-r 0) (< next-r (array-dimension grid 0))
-                               (>= next-c 0) (< next-c (array-dimension grid 1))
-                               (char= (aref grid next-r next-c) #\O))
-                     do (push (cons next-r next-c) (cdr (last move-chain))))
-               
-               ;; Check if move is valid and execute
-               (when (can-move-p grid r c dr dc move-chain)
-                 (move-pieces grid move-chain dr dc))))
-    
-    ;; Calculate final GPS coordinates with explicit 0 for empty rows
-    (loop for r below (array-dimension grid 0)
-          sum (or (loop for c below (array-dimension grid 1)
-                       when (char= (aref grid r c) #\O)
-                       sum (+ (* 100 r) c))
-                  0))))  ; Return 0 if no O's found in row
+    (let* ((pos (find-position grid))
+           (r (first pos))
+           (c (second pos))
+           (rows (array-dimension grid 0))
+           (cols (array-dimension grid 1)))
+      (loop for move across moves do 
+            (let ((dr (cond ((char= move #\^) -1)
+                           ((char= move #\v) 1)
+                           (t 0)))
+                  (dc (cond ((char= move #\<) -1)
+                           ((char= move #\>) 1)
+                           (t 0))))
+              (let ((targets (list (list r c)))
+                    (cr r)
+                    (cc c)
+                    (going t))
+                (loop while t do 
+                      (incf cr dr)
+                      (incf cc dc)
+                      (let ((char (aref grid cr cc)))
+                        (cond 
+                          ((char= char #\#) 
+                           (setf going nil) 
+                           (return))
+                          ((char= char #\O)
+                           (push (list cr cc) targets))
+                          ((char= char #\.) 
+                           (return)))))
+                (when going
+                  (setf (aref grid r c) #\.)
+                  (setf (aref grid (+ r dr) (+ c dc)) #\@)
+                  (loop for (br bc) in (butlast targets) do 
+                        (setf (aref grid (+ br dr) (+ bc dc)) #\O))
+                  (setf r (+ r dr))
+                  (setf c (+ c dc))))))
+      ;; Calculate score like the Python version
+      (let ((score 0))
+        (loop for row from 0 below rows do
+              (loop for col from 0 below cols do
+                    (when (char= (aref grid row col) #\O)
+                      (incf score (+ (* 100 row) col)))))
+        (format t "Score: ~a~%" score)))))
 
 (solve-one)
+
+(defun expand-grid (grid)
+  (let* ((rows (array-dimension grid 0))
+         (cols (array-dimension grid 1))
+         ;; Create the larger grid, filling with dots
+         (new-grid (make-array (list rows (* cols 2)) :initial-element #\.)))
+    
+    ;; Fill in the expanded grid - going horizontally
+    (loop for r below rows do
+          (loop for c below cols do
+                (let ((char (aref grid r c)))
+                  (case char
+                    (#\# (setf (aref new-grid r (* c 2)) #\#)
+                         (setf (aref new-grid r (1+ (* c 2))) #\#))
+                    (#\O (setf (aref new-grid r (* c 2)) #\[)
+                         (setf (aref new-grid r (1+ (* c 2))) #\]))
+                    (#\@ (setf (aref new-grid r (* c 2)) #\@)
+                         (setf (aref new-grid r (1+ (* c 2))) #\.))
+                    (#\. (setf (aref new-grid r (* c 2)) #\.)
+                         (setf (aref new-grid r (1+ (* c 2))) #\.))))))
+    new-grid))
+
+(defun print-grid (grid)
+  (loop for i below (array-dimension grid 0) do
+        (loop for j below (array-dimension grid 1) do
+              (format t "~c" (aref grid i j)))
+        (format t "~%")))
+
+(defun solve-two ()
+  "Solve part two of day 15"
+  (multiple-value-bind (grid moves) (read-input t)
+    (setf grid (expand-grid grid))
+    (let* ((pos (find-position grid))
+           (r (first pos))
+           (c (second pos))
+           (rows (array-dimension grid 0))
+           (cols (array-dimension grid 1))
+           (score 0))  ; Move score declaration up
+      (loop for move across moves do 
+            (let* ((dr (cond ((char= move #\^) -1)
+                            ((char= move #\v) 1)
+                            (t 0)))
+                   (dc (cond ((char= move #\<) -1)
+                            ((char= move #\>) 1)
+                            (t 0)))
+                   (targets (list (list r c)))
+                   (going t))
+              ;; Exactly like Python
+              (loop for target in targets
+                    for (cr cc) = target
+                    for nr = (+ cr dr)
+                    for nc = (+ cc dc)
+                    do (unless (member (list nr nc) targets :test #'equal)
+                         (let ((char (aref grid nr nc)))
+                           (cond ((char= char #\#)
+                                  (setf going nil)
+                                  (return))
+                                 ((char= char #\[)
+                                  (setf targets 
+                                        (append targets 
+                                                (list (list nr nc)
+                                                      (list nr (1+ nc))))))
+                                 ((char= char #\])
+                                  (setf targets 
+                                        (append targets 
+                                                (list (list nr nc)
+                                                      (list nr (1- nc))))))))))
+              (when going
+                (let ((copy (make-array (array-dimensions grid))))
+                  ;; Copy grid
+                  (loop for i below rows do
+                        (loop for j below cols do
+                              (setf (aref copy i j) (aref grid i j))))
+                  ;; Move exactly like Python
+                  (setf (aref grid r c) #\.)
+                  (setf (aref grid (+ r dr) (+ c dc)) #\@)
+                  (loop for target in (rest targets)
+                        for (br bc) = target
+                        do (setf (aref grid br bc) #\.))
+                  (loop for target in (rest targets)
+                        for (br bc) = target
+                        do (setf (aref grid (+ br dr) (+ bc dc))
+                                (aref copy br bc)))
+                  (setf r (+ r dr))
+                  (setf c (+ c dc)))))
+      ;; Only calculate score once at the very end
+      (loop for row from 0 below rows do
+            (loop for col from 0 below cols do
+                  (when (char= (aref grid row col) #\[)
+                    (incf score (+ (* 100 row) col)))))
+      (format t "Final grid state:~%")
+      (print-grid grid)
+      (format t "Score: ~a~%" score)))))
+
+(solve-two)
