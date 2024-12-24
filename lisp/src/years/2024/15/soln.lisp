@@ -130,8 +130,15 @@
            (c (second pos))
            (rows (array-dimension grid 0))
            (cols (array-dimension grid 1))
-           (score 0))  ; Move score declaration up
+           (score 0)
+           (i 0))  ; Move score declaration up
+      (print-grid grid)
+      (format t "rows: ~a, cols: ~a~%" rows cols)
+      (format t "Initial position: ~a, ~a~%" r c)
+
       (loop for move across moves do 
+            (if (= i 1000)
+                (return-from solve-two))
             (let* ((dr (cond ((char= move #\^) -1)
                             ((char= move #\v) 1)
                             (t 0)))
@@ -140,7 +147,7 @@
                             (t 0)))
                    (targets (list (list r c)))
                    (going t))
-              ;; Exactly like Python
+
               (loop for target in targets
                     for (cr cc) = target
                     for nr = (+ cr dr)
@@ -160,6 +167,7 @@
                                         (append targets 
                                                 (list (list nr nc)
                                                       (list nr (1- nc))))))))))
+
               (when going
                 (let ((copy (make-array (array-dimensions grid))))
                   ;; Copy grid
@@ -178,13 +186,15 @@
                                 (aref copy br bc)))
                   (setf r (+ r dr))
                   (setf c (+ c dc)))))
+            (incf i)
+            (print-grid grid)
+            )
       ;; Only calculate score once at the very end
       (loop for row from 0 below rows do
             (loop for col from 0 below cols do
                   (when (char= (aref grid row col) #\[)
                     (incf score (+ (* 100 row) col)))))
-      (format t "Final grid state:~%")
       (print-grid grid)
-      (format t "Score: ~a~%" score)))))
+      (format t "Score: ~a~%" score))))
 
 (solve-two)
