@@ -30,7 +30,7 @@
 (read-input t)
 
 (defun print-map (m)
-  (maphash (lambda (k v) (format t "~a: ~a~%" k v)) m)))
+  (maphash (lambda (k v) (format t "~a: ~a~%" k v)) m))
 
 (defun calc (wire known formulas operators) 
   (cond 
@@ -54,7 +54,7 @@
 
 
 (defun solve-one ()
-  (multiple-value-bind (known formulas) (read-input nil)
+  (multiple-value-bind (known formulas) (read-input t)
     (let ((operators (make-hash-table :test 'equal))
           (z-values '()))
       (setf (gethash "AND" operators) #'logand)
@@ -70,10 +70,99 @@
 
 (solve-one)
 
+(defun make-wire (c num)
+  (concatenate 'string c (format nil "~2,'0d" num)))
+
+(defun verify-intermediate-xor (wire num formulas)
+  (if (not (gethash wire formulas)) nil)
+  (let* ((triplet (gethash wire formulas))
+         (op (first triplet))
+         (x (second triplet))
+         (y (third triplet)))
+    (if (not (string= op "XOR")) nil)
+    (equal (sort (list x y) #'string<) 
+          (list (make-wire "x" num) (make-wire "y" num)))))
+
+(defun verify-carry-bit (wire num formulas)
+  (if (not (gethash wire formulas)) nil)
+  (let* ((triplet (gethash wire formulas))
+         (op (first triplet))
+         (x (second triplet))
+         (y (third triplet)))
+    (if (= num 1)
+        (and (string= op "AND")
+             (equal (sort (list x y) #'string<)
+                   (list "x00" "y00")))
+        (and (string= op "OR")
+             (or (and (verify-direct-carry x (- num 1) formulas)
+                     (verify-recarry y (- num 1) formulas))
+                 (and (verify-direct-carry y (- num 1) formulas)
+                     (verify-recarry x (- num 1) formulas)))))))
+
+(defun verify-direct-carry (wire num formulas)
+  (if (not (gethash wire formulas)) nil)
+  (let* ((triplet (gethash wire formulas))
+         (op (first triplet))
+         (x (second triplet))
+         (y (third triplet)))
+    (and (string= op "AND")
+         (equal (sort (list x y) #'string<)
+               (list (make-wire "x" num) (make-wire "y" num))))))
+
+(defun verify-recarry (wire num formulas)
+  (if (not (gethash wire formulas)) nil)
+  (let* ((triplet (gethash wire formulas))
+         (op (first triplet))
+         (x (second triplet))
+         (y (third triplet)))
+    (and (string= op "AND")
+         (or (and (verify-intermediate-xor x num formulas)
+                 (verify-carry-bit y num formulas))
+             (and (verify-intermediate-xor y num formulas)
+                 (verify-carry-bit x num formulas))))))
+
+(defun verify-z (wire num formulas)
+  (if (not (gethash wire formulas)) nil)
+  (let* ((triplet (gethash wire formulas))
+         (op (first triplet))
+         (x (second triplet))
+         (y (third triplet)))
+    (if (not (string= op "XOR")) nil)
+    (if (= num 0) 
+        (equal (sort (list x y) #'string<) 
+              (list "x00" "y00"))
+        (or (and (verify-intermediate-xor x num formulas) (verify-carry-bit y num formulas))
+            (and (verify-intermediate-xor y num formulas) (verify-carry-bit x num formulas))))))
+
+(defun verify (num formulas) 
+  (verify-z (make-wire "z" num) num formulas))
+
+(defun progress (formulas)
+  (let ((i 0))
+    (loop while t do 
+        (if (not (verify i formulas)) (return i))
+        (incf i))))
+
 (defun solve-two ()
   "Solve part two day 24"
-  )
+  (multiple-value-bind (known formulas) (read-input nil)
+    (let ((swaps '()))
+      (loop for i from 0 below 4 do 
+        (let ((baseline (progress formulas)))
+          (block outer
+            (loop for x being the hash-keys of formulas do 
+              (loop for y being the hash-keys of formulas do 
+                (unless (string= x y)
+                  (let ((temp-x (gethash x formulas))
+                        (temp-y (gethash y formulas)))
+                    (setf (gethash x formulas) temp-y
+                          (gethash y formulas) temp-x)
+                    (when (> (progress formulas) baseline)
+                      (push x swaps)
+                      (push y swaps)
+                      (return-from outer))
+                    (setf (gethash x formulas) temp-x
+                          (gethash y formulas) temp-y))))))))
+      (format nil "~{~a~^,~}" (sort swaps #'string<)))))
 
 (solve-two)
-
-
