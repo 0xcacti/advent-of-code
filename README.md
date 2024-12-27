@@ -15,4 +15,4 @@ common lisp.
 ## Years Complete: 
 - [x] 2021
 - [x] 2023
-- [ ] 2024
+- [x] 2024
