@@ -42,3 +42,4 @@
             (if (gethash (aref left i) counts) (* (aref left i) (gethash (aref left i) counts)) 0)))))
 
 (part-two)
+
