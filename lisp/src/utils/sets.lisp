@@ -1,25 +1,22 @@
 (in-package :advent-of-code/utils)
 
-(defstruct set ())
+(defstruct (set (:constructor make-set))
+  (storage (make-hash-table :test #'equal)))
 
-(defun element-of-set (x set) 
-  (cond ((not set) nil)
-        ((eq x (car set)) t) 
-        (t (element-of-set x (cdr set)))))
+(defun add (s item)
+  (setf (gethash item (set-storage s)) t)
+  s)
 
-(defun append-to-set (x set)
-  (if (element-of-set x set)
-      set
-      (cons x set)))
+(defun remove-item (s item)
+  (remhash item (set-storage s))
+  s)
 
-(defun intersection-set (set1 set2)
-  (cond ((or (not set1) (not set2)) '())
-        ((element-of-set (car set1) set2)
-         (cons (car set1) (intersection-set (cdr set1) set2)))
-        (t (intersection-set (cdr set1) set2))))
+(defun contains (s item)
+  (nth-value 0 (gethash item (set-storage s))))
 
+(defun items (s)
+  (loop for key being the hash-keys of (set-storage s)
+        collect key))
 
-(defun union-set (set1 set2)
-;; consing up a list seems to be very important
-
-
+(defun size (s)
+  (hash-table-count (set-storage s)))
