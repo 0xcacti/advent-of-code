@@ -13,6 +13,8 @@ common lisp.
 
 
 ## Years Complete: 
-- [x] 2021
-- [x] 2023
-- [x] 2024
+- [x] 2021 (lisp)
+- [ ] 2022 
+- [x] 2023 (lua) 
+- [x] 2024 (lisp)
+- [ ] 2025 
