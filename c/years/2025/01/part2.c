@@ -20,7 +20,6 @@ int main(void) {
   int pos = 50;
   int z_count = 0;
 
-  printf("Pos: %d\n\n", pos);
   while (fgets(buf, sizeof(buf), input) != NULL) {
     switch (buf[0]) {
     case 'L': {
@@ -32,7 +31,6 @@ int main(void) {
           z_count += -c;
         }
         pos = wrap(pos - steps, 100);
-        printf("New Pos: %d\n", pos);
         break;
       } else {
         if (pos - steps <= 0) {

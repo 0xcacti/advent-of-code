@@ -1,18 +1,23 @@
 CC := gcc
 CFLAGS := -Wall -Wextra -std=c11
 
-DIRS   := $(wildcard [0-9][0-9])
-SRCS   := $(foreach d,$(DIRS),$(wildcard $(d)/part*.c))
-EXECS := $(SRCS:.c=)
+SRCS := $(wildcard [0-9][0-9]/part*.c)
+BINS := $(foreach f,$(SRCS),$(dir $f)bin/$(basename $(notdir $f)))
 
 .PHONY: all clean
 
-all: $(EXECS)
+all: $(BINS)
 
-%: %.c
-	$(CC) $(CFLAGS) -o $@ $<
+define BUILD_template
+$1: $2
+	mkdir -p $$(@D)
+	$(CC) $(CFLAGS) -o $$@ $$<
+endef
+
+$(foreach s,$(SRCS), \
+  $(eval $(call BUILD_template, \
+    $(dir $s)bin/$(basename $(notdir $s)),$s)))
 
 clean:
-	rm -f $(EXECS)
-
+	rm -f $(BINS)
 
