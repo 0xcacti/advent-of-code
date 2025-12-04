@@ -9,7 +9,6 @@ int wrap(int x, int n) {
 }
 
 int main(void) {
-  printf("Beginning Solving Part 1\n");
   FILE *input = fopen("01/input.txt", "r");
   if (input == NULL) {
     perror("Failed to open input file");
@@ -21,25 +20,20 @@ int main(void) {
   int pos = 50;
   int z_count = 0;
 
-  printf("Pos: %d\n\n", pos);
   while (fgets(buf, sizeof(buf), input) != NULL) {
     switch (buf[0]) {
     case 'L': {
       int steps = atoi(&buf[1]);
-      printf("Turn Left: %d\n", steps);
       pos = wrap(pos - steps, 100);
-      printf("New Pos: %d\n", pos);
       break;
     }
     case 'R': {
       int steps = atoi(&buf[1]);
-      printf("Turn Right %d\n", steps);
       pos = wrap(pos + steps, 100);
       break;
     }
     }
     if (pos == 0) z_count++;
-    printf("\n");
   }
 
   printf("z count: %d\n", z_count);
