@@ -46,6 +46,10 @@ int main(void) {
   int line_count = 0;
   while ((fgets(buf, sizeof(buf), input) != NULL)) {
     lines[line_count] = strdup(buf);
+    size_t L = strlen(lines[line_count]);
+    if (L > 0 && lines[line_count][L - 1] == '\n') {
+      lines[line_count][L - 1] = '\0';
+    }
     line_count++;
   }
 
@@ -53,8 +57,8 @@ int main(void) {
     printf("%s", lines[i]);
   }
 
-  int result = lines_max(lines, line_count);
-  printf("Result: %d\n", result);
+  long long result = lines_max(lines, line_count);
+  printf("Result: %lld\n", result);
 
   return 0;
 }
