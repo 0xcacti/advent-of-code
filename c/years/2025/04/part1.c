@@ -11,7 +11,7 @@ void print_grid(char *start, int row_count, int col_count) {
 }
 
 int main(void) {
-  bool is_test = true;
+  bool is_test = false;
 
   FILE *file = NULL;
   int row_count = 0;
@@ -74,8 +74,16 @@ int main(void) {
     }
   }
 
-  printf("\nAfter processing:\n");
-  print_grid(&grid_end[0][0], row_count, col_count);
+  int count = 0;
+  for (int r = 0; r < row_count; r++) {
+    for (int c = 0; c < col_count; c++) {
+      if (grid_end[r][c] == 'x') {
+        count++;
+      }
+    }
+  }
+
+  printf("\nTotal 'x' count: %d\n", count);
 
   return 0;
 }
