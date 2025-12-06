@@ -9,15 +9,14 @@ typedef struct {
 } range_t;
 
 int find_fresh_count(range_t *ranges, int range_count, long long *points, int point_count) {
-  for (int i = 0; i < range_count; i++) {
-    printf("Range %d: %lld - %lld\n", i, ranges[i].start, ranges[i].end);
-  }
+  // for (int i = 0; i < range_count; i++) {
+  //   printf("Range %d: %lld - %lld\n", i, ranges[i].start, ranges[i].end);
+  // }
 
-  printf("\n");
+  // printf("\n");
   // for (int i = 0; i < point_count; i++) {
   //   printf("Point %d: %lld\n", i, points[i]);
   // }
-
   int fresh_count = 0;
   for (int i = 0; i < point_count; i++) {
     long long point = points[i];
@@ -38,7 +37,7 @@ int find_fresh_count(range_t *ranges, int range_count, long long *points, int po
 }
 
 int main() {
-  bool is_test = false;
+  bool is_test = true;
 
   FILE *file = NULL;
   int sec_one_count = 0;
