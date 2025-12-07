@@ -24,6 +24,9 @@ int **split_lines(char **lines, size_t line_count, size_t *array_count) {
   *array_count = line_count;
 
   for (size_t i = 0; i < line_count; i++) {
+    int len = 0;
+    int count = 8;
+
     char *tok = strtok(lines[i], " ");
     size_t num_count = 0;
   }
