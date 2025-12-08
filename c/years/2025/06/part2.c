@@ -12,21 +12,13 @@ char ***split_lines(char **lines, size_t line_count, size_t *cols) {
 
   size_t columns = strlen(lines[0]);
 
-  char ***grid = malloc(line_count * sizeof(char *));
+  char ***grid = malloc(line_count * sizeof(char **));
   if (grid == NULL) exit(EXIT_FAILURE);
   for (size_t i = 0; i < line_count; i++) {
     char **row = malloc(columns * sizeof(char *));
     if (row == NULL) exit(EXIT_FAILURE);
 
     char *line = lines[i];
-    // char *tok = strtok(line, " \t\r\n");
-    // int j = 0;
-
-    // while (tok != NULL && j < elem_count) {
-    //   row[j] = tok;
-    //   j++;
-    //   tok = strtok(NULL, " \t\r\n");
-    // }
     for (size_t j = 0; j < columns; j++) {
       char *ch = malloc(2 * sizeof(char));
       if (ch == NULL) exit(EXIT_FAILURE);
@@ -71,24 +63,56 @@ int main() {
   size_t cols = 0;
   char ***grid = split_lines(all_lines, rows, &cols);
 
+  long long components[5000] = {0};
+  size_t count = 0;
+  long long sub_components[5000] = {0};
+  size_t sub_count = 0;
+  size_t last_break = 0;
   long long sum = 0;
 
-  long long components[500] = {0};
-  size_t count = 0;
-  long long sub_components[500] = {0};
-  size_t sub_count = 0;
+  for (ssize_t c = (ssize_t)cols - 1; c >= 0; c--) {
+    char *part = calloc(rows, sizeof(char));
+    bool has_op = false;
+    Operation op = ADD;
 
-  for (size_t c = cols - 1; c >= 0; c--) {
-
-    long long part = 0;
     for (size_t r = 0; r < rows; r++) {
       char *cell = grid[r][c];
       if (isdigit(cell[0])) {
-
+        strcat(part, cell);
       } else if (strcmp(cell, "+") == 0) {
+        has_op = true;
+        op = ADD;
       } else if (strcmp(cell, "*") == 0) {
+        has_op = true;
+        op = MULT;
       }
     }
+
+    if (part[0] != '\0') {
+      components[count++] = atoll(part);
+      printf("Part at col %zu: %s\n", c + 1, part);
+    }
+
+    if (has_op) {
+      long long acc = (op == ADD) ? 0 : 1;
+      for (size_t i = last_break; i < count; i++) {
+        if (op == ADD) {
+          acc += components[i];
+        } else if (op == MULT && components[i] != 0) {
+          acc *= components[i];
+        }
+      }
+      sub_components[sub_count++] = acc;
+      printf("Op %c over components[%zu..%zu) = %lld\n", op == ADD ? '+' : '*', last_break, count,
+             acc);
+
+      last_break = count;
+    }
+    free(part);
+  }
+
+  for (size_t i = 0; i < sub_count; i++) {
+    sum += sub_components[i];
   }
 
   printf("Sum: %lld\n", sum);
