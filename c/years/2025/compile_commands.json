@@ -1,0 +1,17 @@
+[
+ {
+  "directory": "/Users/t/code/advent-of-code/c/years/2025",
+  "arguments": [
+   "gcc",
+   "-Wall",
+   "-Wextra",
+   "-std=c11",
+   "-Iutils",
+   "-o",
+   "06/bin/part1",
+   "06/part1.c",
+   "utils/files.c"
+  ],
+  "file": "utils/files.c"
+ }
+]
