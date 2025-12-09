@@ -1,4 +1,5 @@
 #include "utils.h"
+#include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,7 +9,12 @@ typedef struct {
   double x;
   double y;
   double z;
+  bool connected;
 } Box;
+
+double distance(Box a, Box b) {
+  return sqrt(pow(b.x - a.x, 2) + pow(b.y - a.y, 2) + pow(b.z - a.z, 2));
+}
 
 Box *parse_boxes(char **lines, size_t line_count) {
   Box *boxes = malloc(line_count * sizeof(Box));
@@ -20,10 +26,27 @@ Box *parse_boxes(char **lines, size_t line_count) {
       boxes[count].x = x;
       boxes[count].y = y;
       boxes[count].z = z;
+      boxes[count].connected = false;
       count++;
     }
   }
   return boxes;
+}
+
+// TODO: how to handle already connected, is that a step?
+void find_shortest_distance(Box *boxes, size_t box_count, int *i, int *j) {
+  double min_distance = INFINITY;
+  for (size_t m = 0; m < box_count; m++) {
+    for (size_t n = m + 1; n < box_count; n++) {
+      if (boxes[m].connected && boxes[n].connected) continue;
+      double dist = distance(boxes[m], boxes[n]);
+      if (dist < min_distance) {
+        min_distance = dist;
+        *i = m;
+        *j = n;
+      }
+    }
+  }
 }
 
 int main() {
@@ -45,6 +68,15 @@ int main() {
   Box *boxes = parse_boxes(all_lines, lc);
   for (size_t i = 0; i < lc; i++) {
     printf("Box %zu: (%.2f, %.2f, %.2f)\n", i + 1, boxes[i].x, boxes[i].y, boxes[i].z);
+  }
+
+  for (int conn = 0; conn < num_connections; conn++) {
+    int i, j;
+    find_shortest_distance(boxes, lc, &i, &j);
+    boxes[i].connected = true;
+    boxes[j].connected = true;
+    printf("Connection %d: Box(%lf, %lf, %lf) <-> Box(%lf, %lf, %lf)\n\n", conn + 1, boxes[i].x,
+           boxes[i].y, boxes[i].z, boxes[j].x, boxes[j].y, boxes[j].z);
   }
 
   free_lines(all_lines, lc);
