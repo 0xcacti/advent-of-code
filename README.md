@@ -8,8 +8,8 @@ I suppose you can learn lua in like 15 minutes, but still
 it was a really nice experience for building familiarity 
 with the syntax.  This year, I decided I wanted to learn
 Lisp.  Just to learn something really different from what
-I am familiar with.  As such, I did 2021 in 
-common lisp.  
+I am familiar with.  As such, I did 2021 in common lisp.  
+Boom, 2025 it's C time. 
 
 
 ## Years Complete: 
