@@ -9,7 +9,10 @@ it was a really nice experience for building familiarity
 with the syntax.  This year, I decided I wanted to learn
 Lisp.  Just to learn something really different from what
 I am familiar with.  As such, I did 2021 in common lisp.  
-Boom, 2025 it's C time. 
+Boom, 2025 it's C time. I really like C and advent of code 
+is really making me appreciate it even more.  I've been having to think 
+a lot about my allocations during these problems.  It's 
+made them a whole new level of difficult.
 
 
 ## Years Complete: 
