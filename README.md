@@ -17,7 +17,7 @@ made them a whole new level of difficult.
 
 ## Years Complete: 
 - [x] 2021 (lisp)
-- [ ] 2022 
+- [ ] 2022 (...)
 - [x] 2023 (lua) 
 - [x] 2024 (lisp)
 - [x] 2025 (c)
