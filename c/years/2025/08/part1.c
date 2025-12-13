@@ -1,4 +1,5 @@
 #include "utils.h"
+
 #include <math.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -10,6 +11,7 @@ typedef struct {
   double y;
   double z;
   bool connected;
+  int id;
 } Box;
 
 double distance(Box a, Box b) {
@@ -75,6 +77,14 @@ int main() {
     find_shortest_distance(boxes, lc, &i, &j);
     boxes[i].connected = true;
     boxes[j].connected = true;
+    if (boxes[i].id != 0) {
+      boxes[j].id = boxes[i].id;
+    } else if (boxes[j].id != 0) {
+      boxes[i].id = boxes[j].id;
+    } else {
+      boxes[i].id = conn + 1;
+      boxes[j].id = conn + 1;
+    }
     printf("Connection %d: Box(%lf, %lf, %lf) <-> Box(%lf, %lf, %lf)\n\n", conn + 1, boxes[i].x,
            boxes[i].y, boxes[i].z, boxes[j].x, boxes[j].y, boxes[j].z);
   }
